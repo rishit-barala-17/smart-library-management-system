@@ -43,6 +43,7 @@ const userSchema = new mongoose.Schema({
   recommendedGenres: [String]
 },
 {
+  strict: false,
   timestamps: {
     createdAt: 'created_at',
     updatedAt: 'updated_at'
