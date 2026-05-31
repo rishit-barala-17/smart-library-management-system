@@ -231,7 +231,7 @@ exports.add_book_view = (req, res) => {
 
 exports.add_book = (req, res) => {
   const { isbn, title, author, publish_year, page_count, genre, description, stock,
-          location_section, location_side, location_row, location_shelf, location_column } = req.body
+          location_section, location_side, location_row, location_column } = req.body
   const errors = validationResult(req)
   if(!errors.isEmpty()) {
     removeImage(req.files.cover_image[0].path)
@@ -249,7 +249,7 @@ exports.add_book = (req, res) => {
   } else {
     const cover_image = req.files.cover_image[0].filename
     Book.create({ isbn, title, author, publish_year, page_count, genre, description, stock, cover_image,
-                  location_section, location_side, location_row, location_shelf, location_column })
+                  location_section, location_side, location_row, location_column })
       .then(result => {
         req.flash('msg', 'New book has been added!')
         res.redirect('/admin/book')
@@ -283,7 +283,7 @@ exports.update_book_view = async (req, res) => {
 
 exports.update_book = async (req, res) => {
   const { isbn, title, author, publish_year, page_count, genre, description, stock,
-          location_section, location_side, location_row, location_shelf, location_column } = req.body
+          location_section, location_side, location_row, location_column } = req.body
   const errors = validationResult(req)
   if(!errors.isEmpty()) {
     try {
@@ -323,7 +323,7 @@ exports.update_book = async (req, res) => {
       { _id: req.body.id },
       { $set: {
           isbn, title, author, publish_year, page_count, genre, description, stock, cover_image,
-          location_section, location_side, location_row, location_shelf, location_column
+          location_section, location_side, location_row, location_column
         }
       })
       .then(result => {

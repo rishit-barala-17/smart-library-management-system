@@ -60,6 +60,7 @@
               <label for="stock" class="form-label">Stock</label>
               <input type="number" class="form-control" name="stock" min="0" value="<%= book.stock %>" required>
             </div>
+            <%- include('../partials/_location_picker', { pickerMode: 'admin', book: book }) %>
             <div class="mb-3">
               <label for="image-preview" class="form-label">Image Preview</label><br>
               <img class="image-preview" src="<%= book.coverImagePath %>" alt="image-preview" width="150" height="200">

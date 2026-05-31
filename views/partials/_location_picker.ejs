@@ -1,0 +1,282 @@
+<style>
+  .loc-wrapper {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    font-family: system-ui, -apple-system, sans-serif;
+  }
+  .loc-sections {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+  }
+  .loc-section-card {
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 1rem;
+    cursor: pointer;
+    background: #f8f9fa;
+    transition: all 0.2s ease;
+    flex: 1;
+    min-width: 150px;
+    text-align: center;
+  }
+  .loc-section-card:hover {
+    border-color: #adb5bd;
+  }
+  .loc-section-card.active {
+    border-color: #0d6efd;
+    background: #e9ecef;
+    box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.25);
+  }
+  .loc-grid-wrapper {
+    display: none;
+    background: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 1.5rem;
+    overflow-x: auto;
+  }
+  .loc-grid-wrapper.visible {
+    display: block;
+  }
+  .loc-grid {
+    display: grid;
+    grid-template-columns: 60px repeat(35, minmax(20px, 1fr));
+    gap: 2px;
+    align-items: center;
+    min-width: 800px;
+  }
+  .loc-header-cell {
+    font-size: 0.75rem;
+    color: #6c757d;
+    text-align: center;
+    padding-bottom: 4px;
+  }
+  .loc-row-label {
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: #495057;
+    text-align: right;
+    padding-right: 10px;
+  }
+  .loc-cell {
+    height: 24px;
+    border: 1px solid rgba(0,0,0,0.1);
+    border-radius: 3px;
+    transition: all 0.1s;
+    position: relative;
+  }
+  .loc-cell[data-side="Front"] {
+    background-color: #e0f2fe; /* Light blue */
+  }
+  .loc-cell[data-side="Back"] {
+    background-color: #fef08a; /* Light yellow */
+  }
+  
+  /* Admin mode styles */
+  .loc-mode-admin .loc-cell {
+    cursor: pointer;
+  }
+  .loc-mode-admin .loc-cell:hover {
+    filter: brightness(0.9);
+    border-color: #9ca3af;
+  }
+  .loc-mode-admin .loc-cell.selected {
+    background-color: #3b82f6 !important;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+  }
+  
+  /* User mode styles */
+  .loc-mode-user .loc-cell {
+    pointer-events: none;
+    opacity: 0.4;
+  }
+  .loc-mode-user .loc-cell.highlighted {
+    opacity: 1;
+    background-color: #ef4444 !important; /* Red */
+    border-color: #dc2626;
+    box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.5);
+    z-index: 2;
+  }
+  .loc-badge {
+    display: inline-block;
+    background: #f8f9fa;
+    border-left: 4px solid #0d6efd;
+    padding: 0.5rem 1rem;
+    margin-bottom: 1rem;
+    border-radius: 4px;
+    font-weight: 500;
+    color: #495057;
+  }
+</style>
+
+<div class="loc-wrapper loc-mode-<%= pickerMode %>" id="loc-picker-<%= typeof book !== 'undefined' && book && book._id ? book._id : 'new' %>">
+  
+  <% if (pickerMode === 'user' && typeof book !== 'undefined' && book && book.location_section) { %>
+    <div class="loc-badge">
+      📍 Find at: <strong><%= book.location_section %></strong> &rarr; Row <strong><%= book.location_row %></strong> &rarr; <strong><%= book.location_side %></strong> Side &rarr; Column <strong><%= book.location_column %></strong>
+    </div>
+  <% } else if (pickerMode === 'admin') { %>
+    <label class="form-label fw-semibold">Physical Location <span class="text-danger">*</span></label>
+    
+    <input type="hidden" name="location_section" class="loc-inp-section" value="<%= typeof book !== 'undefined' && book ? book.location_section : '' %>" required>
+    <input type="hidden" name="location_row" class="loc-inp-row" value="<%= typeof book !== 'undefined' && book ? book.location_row : '' %>" required>
+    <input type="hidden" name="location_side" class="loc-inp-side" value="<%= typeof book !== 'undefined' && book ? book.location_side : '' %>" required>
+    <input type="hidden" name="location_column" class="loc-inp-column" value="<%= typeof book !== 'undefined' && book ? book.location_column : '' %>" required>
+  <% } %>
+
+  <div class="loc-sections">
+    <% const sections = [
+      { name: 'Science & Medicine', row: 'A' },
+      { name: 'Fiction & Literature', row: 'B' },
+      { name: 'Arts & Humanities', row: 'C' },
+      { name: 'History & Biography', row: 'D' },
+      { name: 'Lifestyle & General', row: 'E' }
+    ] %>
+    
+    <% sections.forEach(sec => { %>
+      <div class="loc-section-card" data-section="<%= sec.name %>" data-row="<%= sec.row %>">
+        <div class="fw-bold"><%= sec.name %></div>
+        <div class="text-muted small">Row <%= sec.row %></div>
+      </div>
+    <% }) %>
+  </div>
+
+  <div class="loc-grid-wrapper">
+    <div class="loc-grid mb-4">
+      <div class="loc-header-cell"></div>
+      <% for(let c = 1; c <= 35; c++) { %>
+        <div class="loc-header-cell"><%= c %></div>
+      <% } %>
+
+      <% sections.forEach(sec => { %>
+        <!-- Front side -->
+        <div class="loc-row-label" data-row-group="<%= sec.row %>"><%= sec.row %> (Front)</div>
+        <% for(let c = 1; c <= 35; c++) { %>
+          <div class="loc-cell" title="<%= sec.name %> - Row <%= sec.row %> - Front - Col <%= c %>" 
+               data-section="<%= sec.name %>" data-row="<%= sec.row %>" data-side="Front" data-col="<%= c %>"></div>
+        <% } %>
+        
+        <!-- Back side -->
+        <div class="loc-row-label" data-row-group="<%= sec.row %>"><%= sec.row %> (Back)</div>
+        <% for(let c = 1; c <= 35; c++) { %>
+          <div class="loc-cell" title="<%= sec.name %> - Row <%= sec.row %> - Back - Col <%= c %>" 
+               data-section="<%= sec.name %>" data-row="<%= sec.row %>" data-side="Back" data-col="<%= c %>"></div>
+        <% } %>
+      <% }) %>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  const wrapperId = `loc-picker-<%= typeof book !== 'undefined' && book && book._id ? book._id : 'new' %>`;
+  const wrapper = document.getElementById(wrapperId);
+  if (!wrapper) return;
+
+  const mode = '<%= pickerMode %>';
+  const sections = wrapper.querySelectorAll('.loc-section-card');
+  const gridWrapper = wrapper.querySelector('.loc-grid-wrapper');
+  const cells = wrapper.querySelectorAll('.loc-cell');
+  const rowLabels = wrapper.querySelectorAll('.loc-row-label');
+  
+  // Data for initialization (if available)
+  const initSection = <%- typeof book !== 'undefined' && book && book.location_section ? JSON.stringify(book.location_section) : '""' %>;
+  const initRow = <%- typeof book !== 'undefined' && book && book.location_row ? JSON.stringify(book.location_row) : '""' %>;
+  const initSide = <%- typeof book !== 'undefined' && book && book.location_side ? JSON.stringify(book.location_side) : '""' %>;
+  const initCol = <%- typeof book !== 'undefined' && book && book.location_column ? JSON.stringify(book.location_column.toString()) : '""' %>;
+
+  // Helper to show grid for a specific row only
+  function showGridForRow(rowLetter) {
+    gridWrapper.classList.add('visible');
+    
+    // Hide all rows in grid first
+    cells.forEach(c => c.style.display = 'none');
+    rowLabels.forEach(r => r.style.display = 'none');
+    
+    // Show only the selected row
+    wrapper.querySelectorAll(`.loc-cell[data-row="${rowLetter}"]`).forEach(c => c.style.display = 'block');
+    wrapper.querySelectorAll(`.loc-row-label[data-row-group="${rowLetter}"]`).forEach(r => r.style.display = 'block');
+  }
+
+  if (mode === 'admin') {
+    const inpSection = wrapper.querySelector('.loc-inp-section');
+    const inpRow = wrapper.querySelector('.loc-inp-row');
+    const inpSide = wrapper.querySelector('.loc-inp-side');
+    const inpCol = wrapper.querySelector('.loc-inp-column');
+
+    sections.forEach(sec => {
+      sec.addEventListener('click', () => {
+        sections.forEach(s => s.classList.remove('active'));
+        sec.classList.add('active');
+        
+        const sectionName = sec.dataset.section;
+        const rowLetter = sec.dataset.row;
+        
+        showGridForRow(rowLetter);
+        
+        // Don't clear selected cell unless the user switches to a DIFFERENT section where the cell doesn't exist
+        // Or actually, let's keep it simple: if they switch section, clear the inputs so they must pick a cell.
+        cells.forEach(c => c.classList.remove('selected'));
+        inpSection.value = sectionName;
+        inpRow.value = rowLetter;
+        inpSide.value = '';
+        inpCol.value = '';
+      });
+    });
+
+    cells.forEach(cell => {
+      cell.addEventListener('click', () => {
+        cells.forEach(c => c.classList.remove('selected'));
+        cell.classList.add('selected');
+        
+        inpSection.value = cell.dataset.section;
+        inpRow.value = cell.dataset.row;
+        inpSide.value = cell.dataset.side;
+        inpCol.value = cell.dataset.col;
+      });
+    });
+
+    // Initialize edit mode if data exists
+    if (initSection && initRow && initSide && initCol) {
+      const targetSec = wrapper.querySelector(`.loc-section-card[data-section="${initSection}"]`);
+      if (targetSec) {
+        targetSec.classList.add('active');
+        showGridForRow(initRow);
+        inpSection.value = initSection;
+        inpRow.value = initRow;
+      }
+      
+      const targetCell = wrapper.querySelector(`.loc-cell[data-row="${initRow}"][data-side="${initSide}"][data-col="${initCol}"]`);
+      if (targetCell) {
+        targetCell.classList.add('selected');
+        inpSide.value = initSide;
+        inpCol.value = initCol;
+      }
+    }
+  } 
+  else if (mode === 'user') {
+    // If book has a location, highlight it
+    if (initSection && initRow && initSide && initCol) {
+      const targetSec = wrapper.querySelector(`.loc-section-card[data-section="${initSection}"]`);
+      if (targetSec) targetSec.classList.add('active');
+      
+      showGridForRow(initRow);
+      
+      const targetCell = wrapper.querySelector(`.loc-cell[data-row="${initRow}"][data-side="${initSide}"][data-col="${initCol}"]`);
+      if (targetCell) {
+        targetCell.classList.add('highlighted');
+        // Wait for rendering to scroll
+        setTimeout(() => {
+          gridWrapper.scrollLeft = targetCell.offsetLeft - (gridWrapper.clientWidth / 2);
+        }, 100);
+      }
+    } else {
+      // Hide sections if no location
+      wrapper.style.display = 'none';
+    }
+  }
+})();
+</script>
