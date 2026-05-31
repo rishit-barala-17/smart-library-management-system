@@ -1,0 +1,359 @@
+<div class="container-fluid">
+  <div class="row flex-nowrap">
+    <%- include('../partials/admin-sidebar') %>
+    <div class="col py-3">
+      <div class="col overflow-auto h-100">
+        <div class="bg-light border rounded-3 p-3">
+          <h2 class="mb-3 display-4">Add New Book</h2>
+          <form method="POST" action="/admin/book" enctype="multipart/form-data">
+            <div class="mb-3">
+              <label for="isbn" class="form-label">ISBN</label>
+              <input type="text" class="form-control" id="isbn" name="isbn" required autofocus <% if (typeof isbn !== 'undefined') { %> value="<%= isbn %>" <% } %>>
+              <% if (typeof errors !== 'undefined') { %>
+                <% errors.forEach(err => { %>
+                  <% if (err.param === 'isbn') { %>
+                    <p class="text-danger fw-bold mb-0"><%= err.msg %></p>
+                  <% } %>
+                <% }) %>
+              <% } %>
+            </div>
+            <div class="mb-3">
+              <label for="title" class="form-label">Title</label>
+              <input type="text" class="form-control" id="title" name="title" required <% if (typeof title !== 'undefined') { %> value="<%= title %>" <% } %>>
+            </div>
+            <div class="mb-3">
+              <label for="author" class="form-label">Author</label>
+              <input type="text" class="form-control" name="author" required <% if (typeof author !== 'undefined') { %> value="<%= author %>" <% } %>>
+            </div>
+            <div class="mb-3">
+              <label for="publish_year" class="form-label">Publish Year</label>
+              <input type="text" class="form-control" name="publish_year" required <% if (typeof publish_year !== 'undefined') { %> value="<%= publish_year %>" <% } %>>
+              <% if (typeof errors !== 'undefined') { %>
+                <% errors.forEach(err => { %>
+                  <% if (err.param === 'publish_year') { %>
+                    <p class="text-danger fw-bold mb-0"><%= err.msg %></p>
+                  <% } %>
+                <% }) %>
+              <% } %>
+            </div>
+            <div class="mb-3">
+              <label for="page_count" class="form-label">Page Count</label>
+              <input type="number" class="form-control" name="page_count" min="1" required <% if (typeof page_count !== 'undefined') { %> value="<%= page_count %>" <% } %>>
+            </div>
+            <div class="mb-3">
+              <label for="genre" class="form-label">Genre</label>
+              <select class="form-select" name="genre" required>
+                <option selected value="" disabled>Choose genre</option>
+                <% genres.forEach(genre => { %>
+                  <option value="<%= genre %>"><%= genre %></option>
+                <% }) %>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="description" class="form-label">Description</label>
+              <textarea class="form-control" name="description" rows="5"><% if (typeof description !== 'undefined') { %><%= description %><% } %></textarea>
+            </div>
+            <div class="mb-3">
+              <label for="stock" class="form-label">Stock</label>
+              <input type="number" class="form-control" name="stock" min="0" required <% if (typeof stock !== 'undefined') { %> value="<%= stock %>" <% } %>>
+            </div>
+
+            <!-- Physical Library Location Map (Interactive Admin Picker) -->
+            <div class="mb-4">
+              <label class="form-label fw-semibold">Physical Location <span class="text-danger">*</span></label>
+
+              <!-- Hidden inputs for form submission -->
+              <input type="hidden" id="inp_section" name="location_section">
+              <input type="hidden" id="inp_row"     name="location_row">
+              <input type="hidden" id="inp_shelf"   name="location_shelf">
+              <input type="hidden" id="inp_column"  name="location_column">
+              <input type="hidden" id="inp_side"    name="location_side">
+
+              <div class="lib-map-wrapper" id="libMapAdmin">
+
+                <div class="lib-map-title">📍 Library Location Picker</div>
+
+                <!-- Step indicators -->
+                <div class="lib-map-steps">
+                  <div class="lib-map-step active" id="step1">
+                    <div class="lib-map-step-num">1</div>
+                    <span class="lib-map-step-label">Select Section</span>
+                  </div>
+                  <span class="lib-map-step-arrow">›</span>
+                  <div class="lib-map-step" id="step2">
+                    <div class="lib-map-step-num">2</div>
+                    <span class="lib-map-step-label">Pick Cell</span>
+                  </div>
+                  <span class="lib-map-step-arrow">›</span>
+                  <div class="lib-map-step" id="step3">
+                    <div class="lib-map-step-num">3</div>
+                    <span class="lib-map-step-label">Confirm</span>
+                  </div>
+                </div>
+
+                <!-- Section cards -->
+                <div class="lib-map-sections" id="libSections">
+                  <div class="lib-section-card" data-section="Science & Medicine" data-shelf-start="A" data-color="#c8e6f9" data-border="#4a9fd4" style="background:#c8e6f9;">
+                    <div class="lib-section-icon">🔬</div>
+                    <div class="lib-section-name">Science &amp; Medicine</div>
+                    <div class="lib-section-row">Row A</div>
+                  </div>
+                  <div class="lib-section-card" data-section="Fiction & Literature" data-shelf-start="B" data-color="#c8f0d8" data-border="#4aad6a" style="background:#c8f0d8;">
+                    <div class="lib-section-icon">📖</div>
+                    <div class="lib-section-name">Fiction &amp; Literature</div>
+                    <div class="lib-section-row">Row B</div>
+                  </div>
+                  <div class="lib-section-card" data-section="Arts & Humanities" data-shelf-start="C" data-color="#f9e8c8" data-border="#d4944a" style="background:#f9e8c8;">
+                    <div class="lib-section-icon">🎨</div>
+                    <div class="lib-section-name">Arts &amp; Humanities</div>
+                    <div class="lib-section-row">Row C</div>
+                  </div>
+                  <div class="lib-section-card" data-section="History & Biography" data-shelf-start="D" data-color="#ede0f5" data-border="#9b6bc4" style="background:#ede0f5;">
+                    <div class="lib-section-icon">🏛️</div>
+                    <div class="lib-section-name">History &amp; Biography</div>
+                    <div class="lib-section-row">Row D</div>
+                  </div>
+                  <div class="lib-section-card" data-section="Lifestyle & General" data-shelf-start="E" data-color="#fde8e8" data-border="#c44a4a" style="background:#fde8e8;">
+                    <div class="lib-section-icon">🌿</div>
+                    <div class="lib-section-name">Lifestyle &amp; General</div>
+                    <div class="lib-section-row">Row E</div>
+                  </div>
+                </div>
+
+                <!-- Grid panel (shown after section click) -->
+                <div class="lib-map-grid-wrap" id="libGridWrap">
+                  <div class="lib-map-grid-header">
+                    <span class="lib-map-grid-label" id="libGridLabel">Select a shelf cell</span>
+                    <span class="lib-map-grid-hint">Click a cell to set column</span>
+                  </div>
+
+                  <!-- Column axis header -->
+                  <div class="lib-map-axis-row mb-1">
+                    <div class="lib-map-row-label" style="border:none;background:transparent;"></div>
+                    <div class="lib-map-col-labels" id="libColLabels"></div>
+                  </div>
+
+                  <!-- Shelf rows A-E -->
+                  <div id="libShelfRows"></div>
+                </div>
+
+                <!-- Confirmation banner -->
+                <div class="lib-map-confirm-banner" id="libConfirmBanner">
+                  <span class="lib-map-confirm-icon">✅</span>
+                  <span id="libConfirmText">Target: —</span>
+                </div>
+
+              </div><!-- .lib-map-wrapper -->
+            </div><!-- end location section -->
+
+            <div class="image-preview-wrapper">
+              <img class="image-preview">
+            </div>
+            <div class="mb-3">
+              <label for="cover_image" class="form-label">Cover Image</label>
+              <input class="form-control" type="file" id="cover_image" name="cover_image" required>
+            </div>
+            <div class="float-end mb-5">
+              <a href="/admin/book" class="btn btn-secondary">Back to book list</a>
+              <button type="submit" class="btn btn-primary">Add Book</button>
+            </div>
+            <br>
+            <br>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  /* ── Cover image preview ── */
+  const cover_image = document.querySelector('#cover_image');
+  const imagePreviewWrapper = document.querySelector('.image-preview-wrapper');
+  cover_image.addEventListener('change', () => {
+    const url = URL.createObjectURL(cover_image.files[0]);
+    imagePreviewWrapper.classList.add('mb-3');
+    imagePreviewWrapper.innerHTML = `
+      <label class="form-label">Image Preview</label><br>
+      <img src="${url}" alt="preview" width="150" height="200">
+    `;
+  });
+
+  /* ══════════════════════════════════════════════════════
+     INTERACTIVE LIBRARY MAP — Admin (3-Step Picker)
+  ══════════════════════════════════════════════════════ */
+
+  const SECTIONS = [
+    { name: 'Science & Medicine',  shelf: 'A', color: '#c8e6f9' },
+    { name: 'Fiction & Literature',shelf: 'B', color: '#c8f0d8' },
+    { name: 'Arts & Humanities',   shelf: 'C', color: '#f9e8c8' },
+    { name: 'History & Biography', shelf: 'D', color: '#ede0f5' },
+    { name: 'Lifestyle & General', shelf: 'E', color: '#fde8e8' }
+  ];
+
+  const step1El  = document.getElementById('step1');
+  const step2El  = document.getElementById('step2');
+  const step3El  = document.getElementById('step3');
+  const gridWrap = document.getElementById('libGridWrap');
+  const gridLabel= document.getElementById('libGridLabel');
+  const colLabels= document.getElementById('libColLabels');
+  const shelfRows= document.getElementById('libShelfRows');
+  const banner   = document.getElementById('libConfirmBanner');
+  const bannerTxt= document.getElementById('libConfirmText');
+
+  const inpSection= document.getElementById('inp_section');
+  const inpRow    = document.getElementById('inp_row');
+  const inpShelf  = document.getElementById('inp_shelf');
+  const inpColumn = document.getElementById('inp_column');
+  const inpSide   = document.getElementById('inp_side');
+
+  let selectedSection = null;
+  let selectedShelf   = null;
+  let selectedColumn  = null;
+  let selectedSide    = null;
+
+  /* Build column axis labels */
+  for (let c = 1; c <= 35; c++) {
+    const d = document.createElement('div');
+    d.className = 'lib-map-col-label-cell';
+    d.textContent = c;
+    colLabels.appendChild(d);
+  }
+
+  /* Build shelf rows (A-E, each with Front & Back) */
+  function buildGrid(section) {
+    shelfRows.innerHTML = '';
+    SECTIONS.forEach(sec => {
+      // Front row
+      const frontRow = buildShelfRow(sec, 'Front');
+      shelfRows.appendChild(frontRow);
+      // Divider between front/back
+      const div = document.createElement('div');
+      div.className = 'lib-shelf-divider';
+      shelfRows.appendChild(div);
+      // Back row
+      const backRow = buildShelfRow(sec, 'Back');
+      shelfRows.appendChild(backRow);
+
+      // Gap between sections
+      const gap = document.createElement('div');
+      gap.style.height = '8px';
+      shelfRows.appendChild(gap);
+    });
+    attachCellListeners();
+  }
+
+  function buildShelfRow(sec, side) {
+    const row = document.createElement('div');
+    row.className = 'lib-shelf-row';
+
+    const rowLabel = document.createElement('div');
+    rowLabel.className = 'lib-map-row-label';
+    rowLabel.textContent = sec.shelf;
+    rowLabel.title = `${sec.name} — ${side}`;
+    row.appendChild(rowLabel);
+
+    const grid = document.createElement('div');
+    grid.className = 'lib-shelf-grid';
+
+    for (let c = 1; c <= 35; c++) {
+      const cell = document.createElement('div');
+      cell.className = 'lib-cell';
+      cell.style.backgroundColor = sec.color;
+      cell.dataset.section = sec.name;
+      cell.dataset.shelf    = sec.shelf;
+      cell.dataset.row      = sec.shelf;  // row = shelf letter
+      cell.dataset.column   = c;
+      cell.dataset.side     = side;
+      cell.title = `${sec.name} › ${side} › Row ${sec.shelf} › Col ${c}`;
+      grid.appendChild(cell);
+    }
+    row.appendChild(grid);
+    return row;
+  }
+
+  function attachCellListeners() {
+    document.querySelectorAll('#libShelfRows .lib-cell').forEach(cell => {
+      cell.addEventListener('click', () => {
+        /* Only allow clicks on the active section rows */
+        if (cell.dataset.section !== selectedSection) return;
+
+        /* Clear previous active cell */
+        document.querySelectorAll('#libShelfRows .lib-cell.active-cell')
+          .forEach(c => c.classList.remove('active-cell'));
+
+        cell.classList.add('active-cell');
+
+        selectedShelf  = cell.dataset.shelf;
+        selectedColumn = cell.dataset.column;
+        selectedSide   = cell.dataset.side;
+
+        /* Fill hidden inputs */
+        inpSection.value = selectedSection;
+        inpRow.value     = selectedShelf;
+        inpShelf.value   = selectedShelf;
+        inpColumn.value  = selectedColumn;
+        inpSide.value    = selectedSide;
+
+        /* Update steps */
+        step2El.classList.remove('active');
+        step2El.classList.add('done');
+        step3El.classList.add('active');
+
+        /* Show banner */
+        bannerTxt.textContent =
+          `Target: ${selectedSection}  →  Row ${selectedShelf}  →  ${selectedSide} Side  →  Column ${selectedColumn}`;
+        banner.classList.add('visible');
+      });
+    });
+  }
+
+  /* Dim/highlight cells based on selected section */
+  function applyDimming() {
+    document.querySelectorAll('#libShelfRows .lib-cell').forEach(cell => {
+      if (cell.dataset.section === selectedSection) {
+        cell.style.opacity = '1';
+        cell.style.cursor  = 'pointer';
+      } else {
+        cell.style.opacity = '0.25';
+        cell.style.cursor  = 'not-allowed';
+      }
+    });
+  }
+
+  /* Section card click */
+  document.querySelectorAll('#libSections .lib-section-card').forEach(card => {
+    card.addEventListener('click', () => {
+      document.querySelectorAll('#libSections .lib-section-card')
+        .forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+
+      selectedSection = card.dataset.section;
+      selectedShelf   = null;
+      selectedColumn  = null;
+
+      /* Clear previous cell selection & banner */
+      banner.classList.remove('visible');
+      inpSection.value = '';
+      inpRow.value = '';
+      inpShelf.value = '';
+      inpColumn.value = '';
+      inpSide.value = '';
+
+      /* Step indicators */
+      step1El.classList.remove('active');
+      step1El.classList.add('done');
+      step2El.classList.add('active');
+      step3El.classList.remove('active');
+      step3El.classList.remove('done');
+
+      /* Show and populate grid */
+      const sectionObj = SECTIONS.find(s => s.name === selectedSection);
+      gridLabel.textContent =
+        `Shelf rows for: ${selectedSection} (Row ${sectionObj.shelf})`;
+      buildGrid(selectedSection);
+      applyDimming();
+      gridWrap.classList.add('visible');
+    });
+  });
+</script>

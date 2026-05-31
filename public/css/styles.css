@@ -1,0 +1,306 @@
+.error {
+  color: rgb(255, 0, 0);
+  font-weight: bold;
+}
+
+.carousel-img {
+  height: 650px;
+  object-fit: cover;
+}
+
+.slick-slide {
+  margin: 0 15px;
+  padding-bottom: 0;
+}
+
+.slick-prev:before,
+.slick-next:before {
+  color: rgb(85, 85, 85);
+}
+
+#book_title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.cover-img {
+  max-width: 150px;
+  max-height: 200px;
+  width: 100%;
+  height: 100%;
+}
+
+.card-img {
+  width: 9rem;
+  height: 12rem;
+  margin: auto;
+}
+
+.cart-img {
+  width: 5rem;
+  height: 7rem;
+  margin: auto;
+}
+
+#img-pointer {
+  cursor: pointer;
+}
+
+@media screen and (max-width: 768px) {
+  .cart {
+    max-width: 100%;
+  }
+}
+
+/* ============================================================
+   SHARED: Physical Library Location Map
+   Scoped under .lib-map — safe to use in both admin & user views
+   ============================================================ */
+
+.lib-map-wrapper {
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  border: 1px solid #dee2e6;
+  border-radius: 10px;
+  background: #f8f9fa;
+  padding: 20px 24px 24px;
+  margin-bottom: 1.5rem;
+}
+
+.lib-map-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6c757d;
+  margin-bottom: 14px;
+}
+
+/* Step indicators */
+.lib-map-steps {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+.lib-map-step {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: #adb5bd;
+  font-weight: 500;
+}
+.lib-map-step-num {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid #dee2e6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.72rem;
+  font-weight: 700;
+  background: #fff;
+  transition: all 0.2s;
+}
+.lib-map-step.active .lib-map-step-num {
+  border-color: #0d6efd;
+  background: #0d6efd;
+  color: #fff;
+}
+.lib-map-step.done .lib-map-step-num {
+  border-color: #198754;
+  background: #198754;
+  color: #fff;
+}
+.lib-map-step.active .lib-map-step-label,
+.lib-map-step.done .lib-map-step-label { color: #343a40; }
+.lib-map-step-arrow { color: #dee2e6; font-size: 0.75rem; }
+
+/* Section cards */
+.lib-map-sections {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  margin-bottom: 16px;
+}
+@media (max-width: 900px) {
+  .lib-map-sections { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 600px) {
+  .lib-map-sections { grid-template-columns: repeat(2, 1fr); }
+}
+
+.lib-section-card {
+  border-radius: 8px;
+  padding: 10px 8px;
+  text-align: center;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.12s;
+  user-select: none;
+}
+.lib-section-card:hover {
+  border-color: rgba(0,0,0,0.25);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.10);
+}
+.lib-section-card.selected {
+  border-color: #343a40 !important;
+  box-shadow: 0 0 0 3px rgba(52,58,64,0.15);
+  transform: translateY(-1px);
+}
+.lib-section-card--readonly {
+  cursor: default !important;
+  pointer-events: none;
+}
+.lib-section-card--readonly:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.lib-section-icon { font-size: 1.4rem; margin-bottom: 4px; }
+.lib-section-name { font-size: 0.72rem; font-weight: 600; color: #343a40; line-height: 1.3; }
+.lib-section-row  { font-size: 0.65rem; color: #6c757d; margin-top: 2px; }
+
+/* Grid container */
+.lib-map-grid-wrap {
+  display: none;
+  animation: libFadeIn 0.2s ease;
+}
+.lib-map-grid-wrap.visible { display: block; }
+
+@keyframes libFadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.lib-map-grid-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.lib-map-grid-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #495057;
+}
+.lib-map-grid-hint {
+  font-size: 0.72rem;
+  color: #adb5bd;
+}
+
+/* Axis labels */
+.lib-map-axis-row {
+  display: flex;
+  align-items: stretch;
+}
+.lib-map-row-label {
+  width: 22px;
+  min-width: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #6c757d;
+  background: #f1f3f5;
+  border: 1px solid #dee2e6;
+  border-right: none;
+}
+.lib-map-col-labels {
+  display: grid;
+  grid-template-columns: repeat(35, 1fr);
+  flex: 1;
+}
+.lib-map-col-label-cell {
+  text-align: center;
+  font-size: 0.55rem;
+  color: #adb5bd;
+  font-weight: 600;
+  line-height: 16px;
+  border: 1px solid #dee2e6;
+  border-bottom: none;
+  border-right: none;
+}
+.lib-map-col-label-cell:last-child { border-right: 1px solid #dee2e6; }
+
+/* Shelf rows */
+.lib-shelf-row {
+  margin-bottom: 3px;
+  display: flex;
+  align-items: stretch;
+}
+.lib-shelf-grid {
+  display: grid;
+  grid-template-columns: repeat(35, 1fr);
+  flex: 1;
+  border: 1px solid #dee2e6;
+  border-radius: 0 4px 4px 0;
+  overflow: hidden;
+}
+.lib-shelf-divider {
+  height: 4px;
+  background: #343a40;
+  margin: 0;
+}
+
+/* Grid cells */
+.lib-cell {
+  height: 24px;
+  border-right: 1px solid #e9ecef;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0;
+  cursor: pointer;
+  transition: background-color 0.1s, opacity 0.1s;
+  position: relative;
+}
+.lib-cell:hover {
+  opacity: 0.85;
+  z-index: 1;
+  outline: 2px solid rgba(0,0,0,0.4);
+  outline-offset: -2px;
+}
+.lib-cell.active-cell {
+  outline: 2.5px solid #000 !important;
+  outline-offset: -2px;
+  opacity: 1 !important;
+  z-index: 2;
+}
+.lib-cell--readonly {
+  cursor: default !important;
+  pointer-events: none;
+}
+.lib-cell--readonly:hover {
+  opacity: 1;
+  outline: none;
+}
+
+/* Confirmation banner */
+.lib-map-confirm-banner {
+  display: none;
+  align-items: center;
+  gap: 10px;
+  background: #e8f5e9;
+  border: 1px solid #a5d6a7;
+  border-radius: 7px;
+  padding: 10px 14px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #2e7d32;
+  margin-top: 12px;
+}
+.lib-map-confirm-banner.visible { display: flex; }
+.lib-map-confirm-banner--readonly {
+  background: #e3f2fd;
+  border-color: #90caf9;
+  color: #0d47a1;
+}
+.lib-map-confirm-icon { font-size: 1.1rem; }
+
+

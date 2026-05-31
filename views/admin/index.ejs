@@ -1,0 +1,267 @@
+<div class="container-fluid">
+  <div class="row flex-nowrap">
+    <%- include('../partials/admin-sidebar') %>
+    <div class="col py-3">
+      <div class="col overflow-auto h-100">
+
+        <!-- Dashboard Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <div>
+            <h2 class="fw-semibold mb-1" style="color: #2d3436;">Welcome back, Admin</h2>
+            <p class="text-muted mb-0" style="font-size: 0.9rem;" id="dashboardDate"></p>
+          </div>
+          <span class="badge bg-light text-dark border" style="font-size: 0.85rem; padding: 8px 16px;">
+            <i class="bi bi-circle-fill text-success me-1" style="font-size: 8px;"></i> System Online
+          </span>
+        </div>
+
+        <!-- Metric Cards -->
+        <div class="row g-3 mb-4">
+          <div class="col-md col-sm-6">
+            <div class="p-3 bg-white border rounded-3 h-100">
+              <div class="d-flex align-items-center mb-2">
+                <div style="width: 36px; height: 36px; background-color: #dfe6e9; border-radius: 8px;" class="d-flex align-items-center justify-content-center me-2">
+                  <i class="bi bi-book text-dark"></i>
+                </div>
+                <span class="text-muted" style="font-size: 0.8rem;">Total Books</span>
+              </div>
+              <h3 class="fw-bold mb-0" style="color: #2d3436;"><%= typeof totalBooks !== 'undefined' ? totalBooks : 0 %></h3>
+            </div>
+          </div>
+          <div class="col-md col-sm-6">
+            <div class="p-3 bg-white border rounded-3 h-100">
+              <div class="d-flex align-items-center mb-2">
+                <div style="width: 36px; height: 36px; background-color: #dfe6e9; border-radius: 8px;" class="d-flex align-items-center justify-content-center me-2">
+                  <i class="bi bi-people text-dark"></i>
+                </div>
+                <span class="text-muted" style="font-size: 0.8rem;">Registered Members</span>
+              </div>
+              <h3 class="fw-bold mb-0" style="color: #2d3436;"><%= typeof registeredMembers !== 'undefined' ? registeredMembers : 0 %></h3>
+            </div>
+          </div>
+          <div class="col-md col-sm-6">
+            <div class="p-3 bg-white border rounded-3 h-100">
+              <div class="d-flex align-items-center mb-2">
+                <div style="width: 36px; height: 36px; background-color: #dfe6e9; border-radius: 8px;" class="d-flex align-items-center justify-content-center me-2">
+                  <i class="bi bi-arrow-up-right text-dark"></i>
+                </div>
+                <span class="text-muted" style="font-size: 0.8rem;">Issued Today</span>
+              </div>
+              <h3 class="fw-bold mb-0" style="color: #2d3436;"><%= typeof issuedToday !== 'undefined' ? issuedToday : 0 %></h3>
+            </div>
+          </div>
+          <div class="col-md col-sm-6">
+            <div class="p-3 bg-white border rounded-3 h-100">
+              <div class="d-flex align-items-center mb-2">
+                <div style="width: 36px; height: 36px; background-color: #f8d7da; border-radius: 8px;" class="d-flex align-items-center justify-content-center me-2">
+                  <i class="bi bi-exclamation-triangle text-danger"></i>
+                </div>
+                <span class="text-muted" style="font-size: 0.8rem;">Overdue Returns</span>
+              </div>
+              <h3 class="fw-bold mb-0" style="color: #d63031;"><%= typeof overdueReturns !== 'undefined' ? overdueReturns : 0 %></h3>
+            </div>
+          </div>
+          <div class="col-md col-sm-6">
+            <div class="p-3 bg-white border rounded-3 h-100">
+              <div class="d-flex align-items-center mb-2">
+                <div style="width: 36px; height: 36px; background-color: #d5f5e3; border-radius: 8px;" class="d-flex align-items-center justify-content-center me-2">
+                  <i class="bi bi-currency-rupee text-success"></i>
+                </div>
+                <span class="text-muted" style="font-size: 0.8rem;">Total Fines</span>
+              </div>
+              <h3 class="fw-bold mb-0" style="color: #2d3436;">₹<%= typeof totalFines !== 'undefined' ? totalFines : 0 %></h3>
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="row g-3 mb-4">
+          <div class="col-lg-7">
+            <div class="bg-white border rounded-3 p-3 h-100">
+              <h6 class="fw-semibold text-muted mb-3" style="font-size: 0.85rem;">Books Issued vs. Returned (Last 7 Days)</h6>
+              <div style="position: relative; height: 300px;">
+                <canvas id="lineChart"></canvas>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-5">
+            <div class="bg-white border rounded-3 p-3 h-100">
+              <h6 class="fw-semibold text-muted mb-3" style="font-size: 0.85rem;">Book Distribution by Genre</h6>
+              <div style="position: relative; height: 300px;">
+                <canvas id="doughnutChart"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom Row: Lists -->
+        <div class="row g-3 mb-4">
+
+          <!-- Most Borrowed Books -->
+          <div class="col-lg-6">
+            <div class="bg-white border rounded-3 p-3 h-100">
+              <h6 class="fw-semibold text-muted mb-3" style="font-size: 0.85rem;">Most Borrowed Books</h6>
+              <div style="max-height: 280px; overflow-y: auto;">
+                <% const borrowedList = typeof mostBorrowed !== 'undefined' ? mostBorrowed : [] %>
+                <% if (borrowedList.length > 0) { %>
+                  <% borrowedList.forEach(function(book) { %>
+                    <div class="d-flex align-items-center mb-3">
+                      <div class="me-3" style="min-width: 24px; text-align: center;">
+                        <i class="bi bi-journal-bookmark text-muted"></i>
+                      </div>
+                      <div class="flex-grow-1">
+                        <p class="mb-1 fw-medium" style="font-size: 0.85rem; color: #2d3436;"><%= book.title %></p>
+                        <div class="progress" style="height: 6px; background-color: #ecf0f1;">
+                          <div class="progress-bar" role="progressbar" style="width: <%= book.popularity %>%; background-color: #636e72;"></div>
+                        </div>
+                      </div>
+                      <span class="text-muted ms-2" style="font-size: 0.75rem;"><%= book.count %> borrows</span>
+                    </div>
+                  <% }) %>
+                <% } else { %>
+                  <p class="text-muted text-center py-4" style="font-size: 0.85rem;">No borrow data available yet.</p>
+                <% } %>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent Activity Feed -->
+          <div class="col-lg-6">
+            <div class="bg-white border rounded-3 p-3 h-100">
+              <h6 class="fw-semibold text-muted mb-3" style="font-size: 0.85rem;">Recent Activity Feed</h6>
+              <div style="max-height: 280px; overflow-y: auto;">
+                <% const activityList = typeof recentActivity !== 'undefined' ? recentActivity : [] %>
+                <% if (activityList.length > 0) { %>
+                  <% activityList.forEach(function(event) { %>
+                    <div class="d-flex align-items-start mb-3">
+                      <div class="me-3 mt-1" style="min-width: 28px; text-align: center;">
+                        <% if (event.type === 'issue') { %>
+                          <i class="bi bi-arrow-up-right-circle text-primary" style="font-size: 1rem;"></i>
+                        <% } else if (event.type === 'return') { %>
+                          <i class="bi bi-arrow-down-left-circle text-success" style="font-size: 1rem;"></i>
+                        <% } else if (event.type === 'newuser') { %>
+                          <i class="bi bi-person-plus text-info" style="font-size: 1rem;"></i>
+                        <% } else if (event.type === 'overdue') { %>
+                          <i class="bi bi-exclamation-circle text-danger" style="font-size: 1rem;"></i>
+                        <% } else { %>
+                          <i class="bi bi-activity text-muted" style="font-size: 1rem;"></i>
+                        <% } %>
+                      </div>
+                      <div class="flex-grow-1">
+                        <p class="mb-0" style="font-size: 0.85rem; color: #2d3436;"><%= event.message %></p>
+                        <small class="text-muted" style="font-size: 0.75rem;"><%= event.time %></small>
+                      </div>
+                    </div>
+                  <% }) %>
+                <% } else { %>
+                  <p class="text-muted text-center py-4" style="font-size: 0.85rem;">No recent activity.</p>
+                <% } %>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+
+<script>
+  // Dynamic date
+  const dateEl = document.getElementById('dashboardDate');
+  const now = new Date();
+  const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+  dateEl.textContent = now.toLocaleDateString('en-IN', options);
+
+  // Chart color palette (muted, corporate)
+  const muted = {
+    blue: 'rgba(99, 110, 114, 1)',
+    blueLight: 'rgba(99, 110, 114, 0.15)',
+    green: 'rgba(0, 184, 148, 1)',
+    greenLight: 'rgba(0, 184, 148, 0.15)',
+  };
+
+  // --- Line Chart: Issued vs Returned ---
+  const lineCtx = document.getElementById('lineChart').getContext('2d');
+  const lineLabels = <%- JSON.stringify(typeof chartLabels !== 'undefined' ? chartLabels : []) %>;
+  const issuedData = <%- JSON.stringify(typeof chartIssued !== 'undefined' ? chartIssued : []) %>;
+  const returnedData = <%- JSON.stringify(typeof chartReturned !== 'undefined' ? chartReturned : []) %>;
+
+  new Chart(lineCtx, {
+    type: 'line',
+    data: {
+      labels: lineLabels,
+      datasets: [
+        {
+          label: 'Issued',
+          data: issuedData,
+          borderColor: muted.blue,
+          backgroundColor: muted.blueLight,
+          tension: 0.35,
+          fill: true,
+          pointRadius: 4,
+          pointBackgroundColor: muted.blue,
+          borderWidth: 2,
+        },
+        {
+          label: 'Returned',
+          data: returnedData,
+          borderColor: muted.green,
+          backgroundColor: muted.greenLight,
+          tension: 0.35,
+          fill: true,
+          pointRadius: 4,
+          pointBackgroundColor: muted.green,
+          borderWidth: 2,
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20, font: { size: 11 } } }
+      },
+      scales: {
+        y: { beginAtZero: true, grid: { color: '#f1f2f6' }, ticks: { font: { size: 11 }, color: '#b2bec3' } },
+        x: { grid: { display: false }, ticks: { font: { size: 11 }, color: '#b2bec3' } }
+      }
+    }
+  });
+
+  // --- Doughnut Chart: Genre Distribution ---
+  const doughnutCtx = document.getElementById('doughnutChart').getContext('2d');
+  const gLabels = <%- JSON.stringify(typeof genreLabels !== 'undefined' ? genreLabels : []) %>;
+  const gData = <%- JSON.stringify(typeof genreData !== 'undefined' ? genreData : []) %>;
+
+  new Chart(doughnutCtx, {
+    type: 'doughnut',
+    data: {
+      labels: gLabels,
+      datasets: [{
+        data: gData,
+        backgroundColor: [
+          '#636e72', '#00b894', '#b2bec3', '#dfe6e9',
+          '#2d3436', '#a4b0be', '#778ca3', '#55efc4',
+          '#74b9ff', '#fab1a0', '#fd79a8', '#e17055',
+          '#00cec9', '#6c5ce7'
+        ],
+        borderColor: '#ffffff',
+        borderWidth: 2,
+        hoverOffset: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: '55%',
+      plugins: {
+        legend: { position: 'bottom', labels: { usePointStyle: true, padding: 14, font: { size: 11 } } }
+      }
+    }
+  });
+</script>
