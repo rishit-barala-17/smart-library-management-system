@@ -348,16 +348,17 @@ exports.returnBook = async (req, res) => {
     )
 
     const book = await Book.findById(book_id)
-    if (book && book.waitlist && book.waitlist.length > 0) {
-      book.reservedFor = book.waitlist.shift()
+    if (book.waitlist.length > 0) {
+      const nextUserId = book.waitlist.shift()
+      book.reservedFor = nextUserId
       book.reservedUntil = new Date(Date.now() + 24 * 60 * 60 * 1000)
-      await book.save()
-    } else if (book) {
+      // Do NOT increment stock
+    } else {
       book.stock += 1
       book.reservedFor = null
       book.reservedUntil = null
-      await book.save()
     }
+    await book.save()
 
     req.flash('msg', "You just returned a book! Thank you and happy reading!")
     res.redirect(`/inventory/${user_id}`)
@@ -383,19 +384,29 @@ exports.borrowHistory = async (req, res) => {
 exports.joinWaitlist = async (req, res) => {
   try {
     const book = await Book.findById(req.params.bookId)
-    const userId = res.locals.user._id
+    if (!book) {
+      req.flash('msg', 'Book not found')
+      return res.redirect('back')
+    }
+    const currentUserId = res.locals.user._id
 
-    if (book.stock > 0 || 
-        (book.reservedFor && book.reservedFor.toString() === userId.toString()) ||
-        book.waitlist.includes(userId)) {
-      req.flash('msg', 'Cannot join waitlist for this book.')
+    if (book.stock > 0) {
+      req.flash('msg', 'Book is available to borrow directly')
+      return res.redirect('back')
+    }
+    if (book.reservedFor && book.reservedFor.toString() === currentUserId.toString()) {
+      req.flash('msg', 'A copy is already reserved for you')
+      return res.redirect('back')
+    }
+    if (book.waitlist.includes(currentUserId)) {
+      req.flash('msg', 'Already in waitlist')
       return res.redirect('back')
     }
 
-    book.waitlist.push(userId)
+    book.waitlist.push(currentUserId)
     await book.save()
-    req.flash('msg', 'Successfully joined the waitlist!')
-    res.redirect('back')
+    req.flash('msg', `Added to waitlist. Position: #${book.waitlist.length}`)
+    res.redirect('/books')
   } catch(err) {
     console.log(err)
     res.redirect('back')
@@ -405,39 +416,33 @@ exports.joinWaitlist = async (req, res) => {
 exports.leaveWaitlist = async (req, res) => {
   try {
     const book = await Book.findById(req.params.bookId)
-    const userId = res.locals.user._id
+    const currentUserId = res.locals.user._id
 
-    book.waitlist = book.waitlist.filter(id => id.toString() !== userId.toString())
+    book.waitlist = book.waitlist.filter(id => id.toString() !== currentUserId.toString())
     await book.save()
-    req.flash('msg', 'You have left the waitlist.')
-    res.redirect('back')
+    req.flash('msg', 'Removed from waitlist')
+    res.redirect('/books')
   } catch(err) {
     console.log(err)
     res.redirect('back')
   }
 }
 
-exports.claimBook = async (req, res) => {
+exports.claimReservation = async (req, res) => {
   try {
     const book = await Book.findById(req.params.bookId)
-    const userId = res.locals.user._id
+    const currentUserId = res.locals.user._id
 
-    if (!book.reservedFor || 
-        book.reservedFor.toString() !== userId.toString() || 
-        book.reservedUntil <= new Date()) {
-      req.flash('msg', 'This reservation is invalid or has expired.')
+    if (!book.reservedFor || book.reservedFor.toString() !== currentUserId.toString() || book.reservedUntil < new Date()) {
+      req.flash('msg', 'Reservation no longer valid')
       return res.redirect('back')
     }
 
-    // Direct claim bypassing cart
-    const returnDate = new Date()
-    returnDate.setDate(returnDate.getDate() + 14) // 14 days from now
-
     await BorrowHistory.create({
-      borrowed_by: userId,
+      borrowed_by: currentUserId,
       borrowed_book: book._id,
       borrow_date: new Date(),
-      return_date: returnDate,
+      return_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
       status: 'In Progress',
       book_returned: false,
       fine_amount: 0
@@ -447,8 +452,8 @@ exports.claimBook = async (req, res) => {
     book.reservedUntil = null
     await book.save()
 
-    req.flash('msg', 'You have successfully claimed your reserved book!')
-    res.redirect(`/inventory/${userId}`)
+    req.flash('msg', 'Book claimed!')
+    res.redirect(`/inventory/${currentUserId}`)
   } catch(err) {
     console.log(err)
     res.redirect('back')
