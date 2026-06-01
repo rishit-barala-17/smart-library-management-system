@@ -1,0 +1,26 @@
+  <% if (typeof success_msg !== 'undefined'
+         && success_msg.length > 0) { %>
+    <div style="padding:12px 16px; margin:1rem auto; max-width:800px;
+      background:#f0fdf4; border:1px solid #86efac;
+      border-radius:8px; color:#15803d; font-weight:500">
+      <%= success_msg %>
+    </div>
+  <% } %>
+
+  <% if (typeof error_msg !== 'undefined'
+         && error_msg.length > 0) { %>
+    <div style="padding:12px 16px; margin:1rem auto; max-width:800px;
+      background:#fef2f2; border:1px solid #fca5a5;
+      border-radius:8px; color:#dc2626; font-weight:500">
+      <%= error_msg %>
+    </div>
+  <% } %>
+
+  <% if (typeof info_msg !== 'undefined'
+         && info_msg.length > 0) { %>
+    <div style="padding:12px 16px; margin:1rem auto; max-width:800px;
+      background:#eff6ff; border:1px solid #93c5fd;
+      border-radius:8px; color:#1d4ed8; font-weight:500">
+      <%= info_msg %>
+    </div>
+  <% } %>

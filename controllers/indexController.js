@@ -313,107 +313,81 @@ exports.borrowedBooks = async (req, res) => {
         const currentUserId = req.params.id;
         const activeReservation = await Book.findOne({ reservedFor: currentUserId, reservedUntil: { $gt: new Date() } }).select('title author reservedUntil _id')
         
-        const waitlistedBooks = await Book.find({ waitlist: currentUserId })
+        const waitlistedBooks = await Book.find({
+          waitlist: currentUserId
+        }).select('_id title author cover_image waitlist total_copies stock genre isbn')
+
         const myWaitlist = await Promise.all(
           waitlistedBooks.map(async (book) => {
-
             const position = book.waitlist.findIndex(
               id => id.toString() === currentUserId.toString()
             ) + 1
             const peopleAhead = position - 1
 
-            // ── STEP A: find actual active borrows ──────────
-            // These have real user-chosen return dates
+            // Real active borrows with user-chosen return dates
             const activeBorrows = await BorrowHistory.find({
               borrowed_book: book._id,
               book_returned: false,
               status: 'In Progress'
-            })
-            .select('return_date')
-            .sort({ return_date: 1 }) // soonest first
+            }).select('return_date').sort({ return_date: 1 })
 
-            // ── STEP B: calculate historical average ────────
-            // Use past completed borrows for this book to get
-            // the real average borrow duration (not assumed 14)
+            // Historical average loan duration for this book
             const completedBorrows = await BorrowHistory.find({
               borrowed_book: book._id,
               book_returned: true,
               status: 'Returned'
             }).select('borrow_date return_date')
 
-            let avgLoanDays = 14 // only used as last-resort fallback
+            let avgLoanDays = 14
             if (completedBorrows.length >= 3) {
-              const totalDays = completedBorrows.reduce((sum, b) => {
-                const days = Math.ceil(
+              const total = completedBorrows.reduce((sum, b) => {
+                const d = Math.ceil(
                   (new Date(b.return_date) - new Date(b.borrow_date))
-                  / 86400000
-                )
-                return sum + Math.max(1, days) // guard against 0
+                  / 86400000)
+                return sum + Math.max(1, d)
               }, 0)
-              avgLoanDays = Math.round(totalDays / completedBorrows.length)
+              avgLoanDays = Math.round(total / completedBorrows.length)
             }
 
-            // ── STEP C: days until the book is first free ───
             const today = new Date()
-            let daysUntilFirstAvailable
+            const daysUntilFirst = activeBorrows.length > 0
+              ? Math.max(0, Math.ceil(
+                  (new Date(activeBorrows[0].return_date) - today)
+                  / 86400000))
+              : avgLoanDays
 
-            if (activeBorrows.length > 0) {
-              // Use the actual soonest return date
-              daysUntilFirstAvailable = Math.max(0, Math.ceil(
-                (new Date(activeBorrows[0].return_date) - today)
-                / 86400000
-              ))
-            } else {
-              // No active borrows found (edge case with sim data)
-              // Fall back to average
-              daysUntilFirstAvailable = avgLoanDays
-            }
-
-            // ── STEP D: total estimated days for this user ──
-            // Position 1: waits until soonest copy returns
-            // Position N: that wait + (N-1) more avg-length borrows
             const estimatedDays = Math.max(
-              0,
-              daysUntilFirstAvailable + (peopleAhead * avgLoanDays)
-            )
+              0, daysUntilFirst + (peopleAhead * avgLoanDays))
 
-            // ── STEP E: human-readable text ─────────────────
             let estimatedText
             if (estimatedDays === 0) {
               estimatedText = 'Could be any day now'
             } else if (estimatedDays <= 7) {
               estimatedText = `~${estimatedDays} day${estimatedDays > 1 ? 's' : ''}`
             } else if (estimatedDays <= 30) {
-              estimatedText = `~${Math.round(estimatedDays / 7)} week${Math.round(estimatedDays / 7) > 1 ? 's' : ''}`
+              const weeks = Math.round(estimatedDays / 7)
+              estimatedText = `~${weeks} week${weeks > 1 ? 's' : ''}`
             } else {
-              estimatedText = `~${Math.round(estimatedDays / 30)} month${Math.round(estimatedDays / 30) > 1 ? 's' : ''}`
+              const months = Math.round(estimatedDays / 30)
+              estimatedText = `~${months} month${months > 1 ? 's' : ''}`
             }
 
-            // ── STEP F: urgency tip message ──────────────────
             let checkBackTip
             if (position === 1) {
-              checkBackTip = 'Watch your inventory — you get a 24-hour window once it\'s returned.'
+              checkBackTip = 'You\'re next — watch for your reservation. You get a 24-hour window to claim.'
             } else if (estimatedDays <= 7) {
-              checkBackTip = `Check back in ${estimatedText} — your turn is close.`
+              checkBackTip = `Check back in ${estimatedText} — your turn is coming up soon.`
             } else {
               checkBackTip = `No need to check daily — come back in ${estimatedText}.`
             }
 
             return {
-              book,
-              position,
-              peopleAhead,
-              estimatedDays,
-              estimatedText,
-              avgLoanDays,        // shown as context
-              checkBackTip,
-              isNext:  position === 1,
-              isClose: position <= 3
+              book, position, peopleAhead, estimatedDays,
+              estimatedText, avgLoanDays, checkBackTip,
+              isNext: position === 1, isClose: position <= 3
             }
           })
         )
-
-        // Sort by position ascending (position 1 appears first)
         myWaitlist.sort((a, b) => a.position - b.position)
 
         res.render('customer/inventory', { url: req.params.id, borrowedBook, activeReservation, myWaitlist, msg: req.flash('msg') })
@@ -485,32 +459,50 @@ exports.borrowHistory = async (req, res) => {
 
 exports.joinWaitlist = async (req, res) => {
   try {
-    const book = await Book.findById(req.params.bookId)
-    if (!book) {
-      req.flash('msg', 'Book not found')
-      return res.redirect('back')
-    }
     const currentUserId = res.locals.user._id
 
+    const book = await Book.findById(req.params.bookId)
+    if (!book) {
+      req.flash('error_msg', 'Book not found.')
+      return res.redirect('/books')
+    }
+
     if (book.stock > 0) {
-      req.flash('msg', 'Book is available to borrow directly')
+      req.flash('info_msg',
+        'This book is currently available — you can borrow it directly.')
       return res.redirect('back')
     }
-    if (book.reservedFor && book.reservedFor.toString() === currentUserId.toString()) {
-      req.flash('msg', 'A copy is already reserved for you')
+
+    if (book.reservedFor &&
+        book.reservedFor.toString() === currentUserId.toString()) {
+      req.flash('info_msg',
+        'A copy is already reserved for you. Check your inventory.')
       return res.redirect('back')
     }
-    if (book.waitlist.includes(currentUserId)) {
-      req.flash('msg', 'Already in waitlist')
+
+    const alreadyInList = book.waitlist.some(
+      id => id.toString() === currentUserId.toString()
+    )
+    if (alreadyInList) {
+      const position = book.waitlist.findIndex(
+        id => id.toString() === currentUserId.toString()
+      ) + 1
+      req.flash('info_msg',
+        `You are already in the waitlist at position #${position}. Check your Inventory page to see your estimated wait time.`)
       return res.redirect('back')
     }
 
     book.waitlist.push(currentUserId)
     await book.save()
-    req.flash('msg', `Added to waitlist. Position: #${book.waitlist.length}`)
-    res.redirect('/books')
-  } catch(err) {
-    console.log(err)
+
+    const position = book.waitlist.length
+    req.flash('success_msg',
+      `You joined the waitlist for "${book.title}". You are #${position} in line. Check your Inventory page to track your estimated wait time.`)
+    res.redirect('back')
+
+  } catch (err) {
+    console.error('[WAITLIST] joinWaitlist error:', err)
+    req.flash('error_msg', 'Something went wrong. Please try again.')
     res.redirect('back')
   }
 }
@@ -523,7 +515,7 @@ exports.leaveWaitlist = async (req, res) => {
     book.waitlist = book.waitlist.filter(id => id.toString() !== currentUserId.toString())
     await book.save()
     req.flash('msg', 'Removed from waitlist')
-    res.redirect('/books')
+    res.redirect('back')
   } catch(err) {
     console.log(err)
     res.redirect('back')

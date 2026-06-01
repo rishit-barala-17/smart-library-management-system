@@ -1,6 +1,6 @@
 const express = require('express')
 const indexController = require('../controllers/indexController')
-const { requireAuth } = require('../middlewares/authMiddleware')
+const { requireAuth, checkUser } = require('../middlewares/authMiddleware')
 const { editProfileValidator, borrowValidator } = require('../middlewares/userMiddleware')
 
 const router = express.Router()
@@ -29,9 +29,9 @@ router.post('/return', requireAuth, indexController.returnBook)
 router.get('/history/:id', requireAuth, indexController.borrowHistory)
 
 // Waitlist
-router.post('/books/waitlist/:bookId', requireAuth, indexController.joinWaitlist)
-router.post('/books/waitlist/leave/:bookId', requireAuth, indexController.leaveWaitlist)
-router.post('/books/claim/:bookId', requireAuth, indexController.claimReservation)
+router.post('/books/waitlist/:bookId', checkUser, requireAuth, indexController.joinWaitlist)
+router.post('/books/waitlist/leave/:bookId', checkUser, requireAuth, indexController.leaveWaitlist)
+router.post('/books/claim/:bookId', checkUser, requireAuth, indexController.claimReservation)
 
 // Books by genre - Placed at the bottom to avoid interference with other routes
 router.get('/:genre', indexController.booksByGenre)

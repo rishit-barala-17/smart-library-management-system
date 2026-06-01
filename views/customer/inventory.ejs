@@ -16,42 +16,87 @@ Claim Your Reserved Copy
 
 <% } %>
 
-    <% if (typeof myWaitlist !== 'undefined' && myWaitlist.length > 0) { %>
-      <div class="mb-4 p-3 rounded" style="background-color: #f8fafc; border: 1px solid #e2e8f0;">
-        <h5 class="mb-3" style="color: #334155;">⏳ Your Waitlist</h5>
-        <div class="list-group">
-          <% myWaitlist.forEach(item => { %>
-            <div class="list-group-item d-flex justify-content-between align-items-center">
-              <div>
-                <h6 class="mb-1"><strong><%= item.book.title %></strong></h6>
-                <div class="text-muted small">
-                  <span class="badge <%= item.isNext ? 'bg-success' : (item.isClose ? 'bg-warning text-dark' : 'bg-secondary') %> me-2">
-                    Position: #<%= item.position %>
-                  </span>
-                  Estimated wait: <strong><%= item.estimatedText %></strong>
-                </div>
-                <div style="font-size:11px; color:#94a3b8; margin-top:4px">
-                  Historic avg loan: <%= item.avgLoanDays %> days per borrower
-                </div>
-                <p style="font-size:12px; color:#64748b; font-style:italic; margin:6px 0 0">
-                  💡 <%= item.checkBackTip %>
-                </p>
-              </div>
-              <form action="/books/waitlist/leave/<%= item.book._id %>" method="POST" class="mb-0">
-                <button type="submit" class="btn btn-outline-danger btn-sm">Leave Queue</button>
-              </form>
-            </div>
-          <% }) %>
-        </div>
+<% if (typeof myWaitlist !== 'undefined'
+       && myWaitlist.length > 0) { %>
+<div style="margin-bottom:2rem; padding:1.5rem; max-width:800px; margin-left:auto; margin-right:auto;
+  background:#fff; border-radius:12px;
+  box-shadow:0 1px 4px rgba(0,0,0,0.08)">
+
+  <h5 style="margin:0 0 1rem; font-weight:700;
+    color:#1e293b; font-size:1.2rem">
+    Your Waitlist
+    <span style="font-size:0.9rem; font-weight:400;
+      color:#64748b; margin-left:6px">
+      (<%= myWaitlist.length %>
+      book<%= myWaitlist.length > 1 ? 's' : '' %>)
+    </span>
+  </h5>
+
+  <div style="display:flex; flex-direction:column; gap:10px">
+    <% myWaitlist.forEach(item => { %>
+    <div style="display:flex; align-items:center; gap:14px;
+      padding:14px 16px; border-radius:10px; border:1px solid;
+      <%= item.isNext
+        ? 'background:#fefce8; border-color:#fde047'
+        : item.isClose
+          ? 'background:#eff6ff; border-color:#bfdbfe'
+          : 'background:#f8fafc; border-color:#e2e8f0' %>">
+
+      <img src="<%= item.book.coverImagePath %>"
+           style="width:50px; height:70px; object-fit:cover;
+             border-radius:4px; flex-shrink:0"
+           onerror="this.onerror=null; this.src='/public/images/default_book.svg';">
+
+      <div style="flex:1; min-width:0">
+        <p style="margin:0 0 4px; font-weight:600;
+          font-size:16px; color:#0f172a; overflow:hidden;
+          text-overflow:ellipsis; white-space:nowrap">
+          <%= item.book.title %>
+        </p>
+        <p style="margin:0 0 2px; font-size:14px;
+          color:#64748b"><%= item.book.author %></p>
+        <p style="margin:0 0 6px; font-size:13px;
+          color:#94a3b8"><%= item.book.genre %></p>
+        <p style="margin:0; font-size:13px; color:#64748b;
+          font-style:italic">
+          <%= item.checkBackTip %>
+        </p>
       </div>
-    <% } %>
+
+      <div style="text-align:right; flex-shrink:0">
+        <div style="font-size:1.6rem; font-weight:800;
+          <%= item.isNext ? 'color:#854d0e'
+            : item.isClose ? 'color:#1d4ed8'
+            : 'color:#475569' %>">
+          #<%= item.position %>
+        </div>
+        <div style="font-size:13px; color:#64748b;
+          margin-top:2px; font-weight:600">
+          <%= item.isNext ? 'You\'re next!'
+            : item.estimatedText %>
+        </div>
+        <% if (!item.isNext) { %>
+        <div style="font-size:12px; color:#94a3b8;
+          margin-top:2px">
+          <%= item.peopleAhead %> ahead ·
+          avg <%= item.avgLoanDays %>d/borrow
+        </div>
+        <% } %>
+      </div>
+    </div>
+    <% }) %>
+  </div>
+
+  <p style="margin:10px 0 0; font-size:12px;
+    color:#94a3b8; text-align:right">
+    * Estimates use actual return dates + historical
+    average loan duration for each book
+  </p>
+</div>
+<% } %>
 
     <div class="row d-flex justify-content-center">
-      <% if (msg.length !== 0) { %>
-        <div class="alert alert-info fw-bold text-center" role="alert">
-          <%= msg %>
-        </div>
-      <% } %>
+      <%- include('../partials/_messages') %>
       <% if(borrowedBook.length === 0) { %>
         <p class="text-center mb-0">No borrowed books yet.</p>
       <% } %>

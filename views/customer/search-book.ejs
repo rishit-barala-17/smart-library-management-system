@@ -1,9 +1,5 @@
 <div class="container my-4">
-  <% if (msg.length !== 0) { %>
-    <div class="alert alert-info fw-bold text-center" role="alert">
-      <%= msg %>
-    </div>
-  <% } %>
+  <%- include('../partials/_messages') %>
   <% if (books.length > 0) { %>
     <div class="row">
       <div class="display-4 pb-4 text-center">Search Results</div>

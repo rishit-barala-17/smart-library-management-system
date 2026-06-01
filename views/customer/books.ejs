@@ -1,10 +1,6 @@
 <div class="display-5 text-center my-5">All Books</div>
 <div class="container">
-  <% if (msg.length !== 0) { %>
-    <div class="alert alert-info fw-bold text-center" role="alert">
-      <%= msg %>
-    </div>
-  <% } %>
+  <%- include('../partials/_messages') %>
   <% if (typeof books !== 'undefined') { %>
     <div class="row d-flex justify-content-center">
       <% books.forEach(book => { %>

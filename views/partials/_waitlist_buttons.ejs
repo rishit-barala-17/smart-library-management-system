@@ -1,65 +1,76 @@
-<% 
-  const currentUserId = user ? user._id.toString() : null;
-  const isReservedForUser = currentUserId && book.reservedFor && book.reservedFor.toString() === currentUserId && book.reservedUntil > new Date();
+<% const currentUserId=user ? user._id.toString() : null; const isReservedForUser=currentUserId && book.reservedFor &&
+  book.reservedFor.toString()===currentUserId && book.reservedUntil> new Date();
   const waitlistIndex = currentUserId ? book.waitlist.findIndex(id => id.toString() === currentUserId) : -1;
   const inWaitlist = waitlistIndex !== -1;
   const waitlistLength = book.waitlist ? book.waitlist.length : 0;
-%>
+  %>
 
-<div class="mt-3">
-  <% if (!user) { %>
-    <!-- Not logged in -->
-    <% if (book.stock > 0) { %>
-      <div class="d-grid text-center">
-        <a href="/login" class="btn btn-outline-primary btn-sm"><i class="bi bi-cart4"></i> Login to Borrow</a>
-      </div>
-    <% } else { %>
-      <div class="d-grid text-center">
-        <button class="btn btn-outline-secondary btn-sm" type="button" disabled>Out of Stock</button>
-      </div>
-    <% } %>
-  <% } else if (isReservedForUser) { %>
-    <!-- CASE 1 -->
-    <div class="alert alert-success p-2 text-center" style="font-size: 0.85rem; margin-bottom: 0.5rem;">
-      <div class="fw-bold mb-1">✅ A copy is reserved for you!</div>
-      <div class="small">Expires at: <%= new Intl.DateTimeFormat('en-GB', { dateStyle: 'medium', timeStyle: 'short' }).format(book.reservedUntil) %></div>
-    </div>
-    <form class="d-grid mx-auto mb-0" action="/books/claim/<%= book._id %>" method="POST">
-      <button class="btn btn-success btn-sm fw-bold" type="submit">Claim Your Reserved Copy</button>
-    </form>
+  <div class="mt-3">
+    <% if (!user) { %>
+      <!-- Not logged in -->
+      <% if (book.stock> 0) { %>
+        <div class="d-grid text-center">
+          <a href="/login" class="btn btn-outline-primary btn-sm"><i class="bi bi-cart4"></i> Login to Borrow</a>
+        </div>
+        <% } else { %>
+          <div class="d-grid text-center">
+            <button class="btn btn-outline-secondary btn-sm" type="button" disabled>Out of Stock</button>
+          </div>
+          <% } %>
+            <% } else if (isReservedForUser) { %>
+              <!-- CASE 1 -->
+              <div class="alert alert-success p-2 text-center" style="font-size: 0.85rem; margin-bottom: 0.5rem;">
+                <div class="fw-bold mb-1">✅ A copy is reserved for you!</div>
+                <div class="small">Expires at: <%= new Intl.DateTimeFormat('en-GB', { dateStyle: 'medium' ,
+                    timeStyle: 'short' }).format(book.reservedUntil) %>
+                </div>
+              </div>
+              <form class="d-grid mx-auto mb-0" action="/books/claim/<%= book._id %>" method="POST">
+                <button class="btn btn-success btn-sm fw-bold" type="submit">Claim Your Reserved Copy</button>
+              </form>
 
-  <% } else if (book.stock > 0) { %>
-    <!-- CASE 2 -->
-    <form class="cart d-grid mx-auto mb-0" action="/cart" method="POST">
-      <input type="hidden" name="user_id" value="<%= user._id %>">
-      <input type="hidden" name="book_id" value="<%= book._id %>">
-      <input type="hidden" name="prev_url" value="<%= typeof prev_url !== 'undefined' ? prev_url : '/books' %>">
-      <button class="btn btn-outline-primary btn-sm" type="submit"><i class="bi bi-cart4"></i> Add to Cart</button>
-    </form>
+              <% } else if (book.stock> 0) { %>
+                <!-- CASE 2 -->
+                <form class="cart d-grid mx-auto mb-0" action="/cart" method="POST">
+                  <input type="hidden" name="user_id" value="<%= user._id %>">
+                  <input type="hidden" name="book_id" value="<%= book._id %>">
+                  <input type="hidden" name="prev_url"
+                    value="<%= typeof prev_url !== 'undefined' ? prev_url : '/books' %>">
+                  <button class="btn btn-outline-primary btn-sm" type="submit"><i class="bi bi-cart4"></i> Add to
+                    Cart</button>
+                </form>
 
-  <% } else if (inWaitlist) { %>
-    <!-- CASE 3 -->
-    <div class="alert alert-info p-2 text-center" style="font-size: 0.85rem; margin-bottom: 0.5rem;">
-      <div class="fw-bold">🕐 You are in the waitlist.</div>
-      <div class="small">Position: #<%= waitlistIndex + 1 %> of <%= waitlistLength %></div>
-    </div>
-    <form class="d-grid mx-auto mb-0" action="/books/waitlist/leave/<%= book._id %>" method="POST">
-      <button class="btn btn-link btn-sm text-danger text-decoration-none" type="submit">Leave Waitlist</button>
-    </form>
+                <% } else if (inWaitlist) { %>
+                  <!-- CASE 3 -->
+                  <div class="alert alert-info p-2 text-center" style="font-size: 0.85rem; margin-bottom: 0.5rem;">
+                    <div class="fw-bold">🕐 You are in the waitlist.</div>
+                    <div class="small">Position: #<%= waitlistIndex + 1 %> of <%= waitlistLength %>
+                    </div>
+                  </div>
+                  <form class="d-grid mx-auto mb-0" action="/books/waitlist/leave/<%= book._id %>" method="POST">
+                    <button class="btn btn-link btn-sm text-danger text-decoration-none" type="submit">Leave
+                      Waitlist</button>
+                  </form>
 
-  <% } else { %>
-    <!-- CASE 4 -->
-    <div class="alert alert-danger p-2 text-center" style="font-size: 0.85rem; margin-bottom: 0.5rem;">
-      <div class="fw-bold">❌ No copies currently available</div>
-    </div>
-    <form class="d-grid mx-auto mb-0" action="/books/waitlist/<%= book._id %>" method="POST">
-      <button class="btn btn-danger btn-sm" type="submit">Join Waitlist</button>
-    </form>
-  <% } %>
+                  <% } else { %>
+                    <!-- CASE 4 -->
+                    <div class="alert alert-danger p-2 text-center" style="font-size: 0.85rem; margin-bottom: 0.5rem;">
+                      <div class="fw-bold">❌ No copies currently available</div>
+                    </div>
+                    <form class="d-grid mx-auto mb-0" action="/books/waitlist/<%= book._id %>" method="POST">
+                      <button class="btn btn-danger btn-sm" type="submit">Join Waitlist</button>
+                    </form>
+                    <% } %>
 
-  <div class="text-center mt-2 text-muted" style="font-size: 0.75rem;">
-    <div>Total copies owned: <strong><%= typeof book.total_copies !== 'undefined' ? book.total_copies : book.stock %></strong></div>
-    <div>Currently available: <strong><%= book.stock %></strong></div>
-    <div>People waiting: <strong><%= waitlistLength %></strong></div>
+                      <div class="text-center mt-2 text-muted" style="font-size: 0.75rem;">
+                        <div>Total copies owned: <strong>
+                            <%= typeof book.total_copies !=='undefined' ? book.total_copies : book.stock %>
+                          </strong></div>
+                        <div>Currently available: <strong>
+                            <%= book.stock %>
+                          </strong></div>
+                        <div>People waiting: <strong>
+                            <%= waitlistLength %>
+                          </strong></div>
+                      </div>
   </div>
-</div>
