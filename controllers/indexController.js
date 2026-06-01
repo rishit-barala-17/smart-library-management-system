@@ -310,10 +310,8 @@ exports.borrowedBooks = async (req, res) => {
         }).populate('borrowed_book')
       })
       .then(async borrowedBook => {
-        const activeReservation = await Book.findOne({
-          reservedFor: req.params.id,
-          reservedUntil: { $gt: new Date() }
-        })
+        const currentUserId = req.params.id;
+        const activeReservation = await Book.findOne({ reservedFor: currentUserId, reservedUntil: { $gt: new Date() } }).select('title author reservedUntil _id')
         res.render('customer/inventory', { url: req.params.id, borrowedBook, activeReservation, msg: req.flash('msg') })
       })
       .catch(err => {

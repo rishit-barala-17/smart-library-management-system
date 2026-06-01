@@ -1,0 +1,38 @@
+<div class="card">
+  <img src="<%= book.coverImagePath %>" id="img-pointer" class="card-img mt-2" alt="<%= book.title %>" data-bs-toggle="modal" data-bs-target="#bookDetailModal<%= book.id %>">
+  <div class="card-body">
+    <h5 class="card-title fs-6" id="book_title" title="<%= book.title %>"><%= book.title %></h5>
+    
+    <% const uid = user ? user._id.toString() : null %>
+    
+    <% if (uid && book.reservedFor && book.reservedFor.toString() === uid && book.reservedUntil > new Date()) { %>
+      <div class="alert alert-success p-1 mb-2 text-center small fw-bold">✅ Reserved for you</div>
+      <form action="/books/claim/<%= book._id %>" method="POST" class="d-grid mb-0">
+        <button type="submit" class="btn btn-success btn-sm">Claim Now</button>
+      </form>
+    <% } else if (book.stock > 0) { %>
+      <form class="cart d-grid mx-auto mb-0" action="/cart" method="POST">
+        <% if (user) { %>
+          <input type="hidden" name="user_id" value="<%= user.id %>">
+        <% } %>
+        <input type="hidden" name="book_id" value="<%= book.id %>">
+        <input type="hidden" name="prev_url" value="/books">
+        <button class="btn btn-outline-success btn-sm mb-1" type="button" data-bs-toggle="modal" data-bs-target="#bookDetailModal<%= book.id %>">More Info</button>
+        <button class="btn btn-outline-primary btn-sm" type="submit">Add to Cart</button>
+      </form>
+    <% } else if (book.stock === 0 && uid && book.waitlist && book.waitlist.some(id => id.toString() === uid)) { %>
+      <% const index = book.waitlist.findIndex(id => id.toString() === uid) %>
+      <div class="alert alert-info p-1 mb-2 text-center small">🕐 Waitlist position: #<%= index + 1 %></div>
+      <form action="/books/waitlist/leave/<%= book._id %>" method="POST" class="text-center mb-0">
+        <button type="submit" class="btn btn-link btn-sm text-decoration-none">Leave waitlist</button>
+      </form>
+    <% } else { %>
+      <div class="badge bg-danger mb-2 d-block">❌ Out of stock</div>
+      <form action="/books/waitlist/<%= book._id %>" method="POST" class="d-grid mb-0">
+        <button type="submit" class="btn btn-warning btn-sm">Join Waitlist (<%= book.waitlist ? book.waitlist.length : 0 %> waiting)</button>
+      </form>
+    <% } %>
+    
+    <div class="text-center form-text mt-2">Available: <%= book.stock %> / <%= book.total_copies %> copies</div>
+  </div>
+</div>
