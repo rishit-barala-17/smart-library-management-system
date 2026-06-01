@@ -312,7 +312,111 @@ exports.borrowedBooks = async (req, res) => {
       .then(async borrowedBook => {
         const currentUserId = req.params.id;
         const activeReservation = await Book.findOne({ reservedFor: currentUserId, reservedUntil: { $gt: new Date() } }).select('title author reservedUntil _id')
-        res.render('customer/inventory', { url: req.params.id, borrowedBook, activeReservation, msg: req.flash('msg') })
+        
+        const waitlistedBooks = await Book.find({ waitlist: currentUserId })
+        const myWaitlist = await Promise.all(
+          waitlistedBooks.map(async (book) => {
+
+            const position = book.waitlist.findIndex(
+              id => id.toString() === currentUserId.toString()
+            ) + 1
+            const peopleAhead = position - 1
+
+            // ── STEP A: find actual active borrows ──────────
+            // These have real user-chosen return dates
+            const activeBorrows = await BorrowHistory.find({
+              borrowed_book: book._id,
+              book_returned: false,
+              status: 'In Progress'
+            })
+            .select('return_date')
+            .sort({ return_date: 1 }) // soonest first
+
+            // ── STEP B: calculate historical average ────────
+            // Use past completed borrows for this book to get
+            // the real average borrow duration (not assumed 14)
+            const completedBorrows = await BorrowHistory.find({
+              borrowed_book: book._id,
+              book_returned: true,
+              status: 'Returned'
+            }).select('borrow_date return_date')
+
+            let avgLoanDays = 14 // only used as last-resort fallback
+            if (completedBorrows.length >= 3) {
+              const totalDays = completedBorrows.reduce((sum, b) => {
+                const days = Math.ceil(
+                  (new Date(b.return_date) - new Date(b.borrow_date))
+                  / 86400000
+                )
+                return sum + Math.max(1, days) // guard against 0
+              }, 0)
+              avgLoanDays = Math.round(totalDays / completedBorrows.length)
+            }
+
+            // ── STEP C: days until the book is first free ───
+            const today = new Date()
+            let daysUntilFirstAvailable
+
+            if (activeBorrows.length > 0) {
+              // Use the actual soonest return date
+              daysUntilFirstAvailable = Math.max(0, Math.ceil(
+                (new Date(activeBorrows[0].return_date) - today)
+                / 86400000
+              ))
+            } else {
+              // No active borrows found (edge case with sim data)
+              // Fall back to average
+              daysUntilFirstAvailable = avgLoanDays
+            }
+
+            // ── STEP D: total estimated days for this user ──
+            // Position 1: waits until soonest copy returns
+            // Position N: that wait + (N-1) more avg-length borrows
+            const estimatedDays = Math.max(
+              0,
+              daysUntilFirstAvailable + (peopleAhead * avgLoanDays)
+            )
+
+            // ── STEP E: human-readable text ─────────────────
+            let estimatedText
+            if (estimatedDays === 0) {
+              estimatedText = 'Could be any day now'
+            } else if (estimatedDays <= 7) {
+              estimatedText = `~${estimatedDays} day${estimatedDays > 1 ? 's' : ''}`
+            } else if (estimatedDays <= 30) {
+              estimatedText = `~${Math.round(estimatedDays / 7)} week${Math.round(estimatedDays / 7) > 1 ? 's' : ''}`
+            } else {
+              estimatedText = `~${Math.round(estimatedDays / 30)} month${Math.round(estimatedDays / 30) > 1 ? 's' : ''}`
+            }
+
+            // ── STEP F: urgency tip message ──────────────────
+            let checkBackTip
+            if (position === 1) {
+              checkBackTip = 'Watch your inventory — you get a 24-hour window once it\'s returned.'
+            } else if (estimatedDays <= 7) {
+              checkBackTip = `Check back in ${estimatedText} — your turn is close.`
+            } else {
+              checkBackTip = `No need to check daily — come back in ${estimatedText}.`
+            }
+
+            return {
+              book,
+              position,
+              peopleAhead,
+              estimatedDays,
+              estimatedText,
+              avgLoanDays,        // shown as context
+              checkBackTip,
+              isNext:  position === 1,
+              isClose: position <= 3
+            }
+          })
+        )
+
+        // Sort by position ascending (position 1 appears first)
+        myWaitlist.sort((a, b) => a.position - b.position)
+
+        res.render('customer/inventory', { url: req.params.id, borrowedBook, activeReservation, myWaitlist, msg: req.flash('msg') })
       })
       .catch(err => {
         console.log(err)
