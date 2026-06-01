@@ -28,6 +28,11 @@ router.post('/read', requireAuth, indexController.readBook)
 router.post('/return', requireAuth, indexController.returnBook)
 router.get('/history/:id', requireAuth, indexController.borrowHistory)
 
+// Waitlist
+router.post('/books/waitlist/:bookId', requireAuth, indexController.joinWaitlist)
+router.post('/books/waitlist/leave/:bookId', requireAuth, indexController.leaveWaitlist)
+router.post('/books/claim/:bookId', requireAuth, indexController.claimBook)
+
 // Books by genre - Placed at the bottom to avoid interference with other routes
 router.get('/:genre', indexController.booksByGenre)
 

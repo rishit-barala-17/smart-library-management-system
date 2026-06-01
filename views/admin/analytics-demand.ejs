@@ -1,0 +1,107 @@
+<div class="container-fluid">
+  <div class="row flex-nowrap">
+    <%- include('../partials/admin-sidebar') %>
+    <div class="col py-3">
+      <div class="col overflow-auto h-100">
+        
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <div>
+            <h2 class="fw-semibold mb-1" style="color: #2d3436;">Procurement Analytics</h2>
+            <p class="text-muted mb-0" style="font-size: 0.9rem;">Predictive Demand Dashboard</p>
+          </div>
+        </div>
+
+
+
+        <!-- Metric Cards -->
+        <div class="row g-3 mb-4">
+          <div class="col-md col-sm-6">
+            <div class="p-3 bg-white border rounded-3 h-100 shadow-sm">
+              <div class="d-flex align-items-center mb-2">
+                <span class="text-muted" style="font-size: 0.8rem;">Active Waitlisted Titles</span>
+              </div>
+              <h3 class="fw-bold mb-0 text-primary"><%= typeof activeWaitlistedTitles !== 'undefined' ? activeWaitlistedTitles : 0 %></h3>
+            </div>
+          </div>
+          <div class="col-md col-sm-6">
+            <div class="p-3 bg-white border rounded-3 h-100 shadow-sm">
+              <div class="d-flex align-items-center mb-2">
+                <span class="text-muted" style="font-size: 0.8rem;">Total Waitlist Requests</span>
+              </div>
+              <h3 class="fw-bold mb-0 text-info"><%= typeof totalWaitlistRequests !== 'undefined' ? totalWaitlistRequests : 0 %></h3>
+            </div>
+          </div>
+          <div class="col-md col-sm-6">
+            <div class="p-3 bg-white border rounded-3 h-100 shadow-sm">
+              <div class="d-flex align-items-center mb-2">
+                <span class="text-muted" style="font-size: 0.8rem;">Total Critical Books (Ratio > 1)</span>
+              </div>
+              <h3 class="fw-bold mb-0 text-danger"><%= typeof totalCriticalBooks !== 'undefined' ? totalCriticalBooks : 0 %></h3>
+            </div>
+          </div>
+          <div class="col-md col-sm-6">
+            <div class="p-3 bg-white border rounded-3 h-100 shadow-sm">
+              <div class="d-flex align-items-center mb-2">
+                <span class="text-muted" style="font-size: 0.8rem;">Action Required</span>
+              </div>
+              <h3 class="fw-bold mb-0 <%= (typeof totalCriticalBooks !== 'undefined' && totalCriticalBooks > 0) ? 'text-danger' : 'text-success' %>">
+                <%= (typeof totalCriticalBooks !== 'undefined' && totalCriticalBooks > 0) ? 'Yes' : 'No' %>
+              </h3>
+            </div>
+          </div>
+        </div>
+
+        <!-- Table -->
+        <div class="bg-white border rounded-3 p-3 shadow-sm">
+          <h5 class="fw-bold mb-4">Waitlist Demand Ranking</h5>
+          <div class="table-responsive">
+            <table class="table table-hover align-middle">
+              <thead class="table-light">
+                <tr>
+                  <th scope="col">Book Title</th>
+                  <th scope="col" class="text-center">ISBN</th>
+                  <th scope="col" class="text-center">Total Owned Copies</th>
+                  <th scope="col" class="text-center">Waitlist Length</th>
+                  <th scope="col" class="text-center">Demand Ratio</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% if (typeof demandData !== 'undefined' && demandData.length > 0) { %>
+                  <% demandData.forEach(item => { %>
+                    <% 
+                      let rowClass = '';
+                      let badgeClass = 'bg-secondary';
+                      if (item.ratio > 2) {
+                        rowClass = 'table-danger';
+                        badgeClass = 'bg-danger';
+                      } else if (item.ratio > 1) {
+                        rowClass = 'table-warning';
+                        badgeClass = 'bg-warning text-dark';
+                      }
+                    %>
+                    <tr class="<%= rowClass %>">
+                      <td class="fw-semibold"><%= item.book.title %></td>
+                      <td class="text-center"><%= item.book.isbn %></td>
+                      <td class="text-center"><%= item.book.total_copies || 0 %></td>
+                      <td class="text-center fw-bold"><%= item.waitlistLength %></td>
+                      <td class="text-center">
+                        <span class="badge <%= badgeClass %> p-2" style="font-size: 0.85rem;">
+                          <%= item.ratio %>
+                        </span>
+                      </td>
+                    </tr>
+                  <% }) %>
+                <% } else { %>
+                  <tr>
+                    <td colspan="5" class="text-center py-4 text-muted">No books currently have a waitlist.</td>
+                  </tr>
+                <% } %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>

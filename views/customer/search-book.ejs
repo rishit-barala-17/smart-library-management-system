@@ -20,22 +20,10 @@
                   <p class="fs-6 fw-light mb-0">Created by <%= book.author %></p>
                   <p class="fs-6 fw-light mb-0">Genre: <%= book.genre %></p>
                   <p class="fs-6 fw-light mb-3">Stock: <%= book.stock %></p>
-                  <% if (book.stock !== 0) { %>
-                    <form class="d-grid gap-2 d-md-block" action="/cart" method="POST">
-                      <% if (user) { %>
-                        <input type="hidden" name="user_id" value="<%= user.id %>">
-                      <% } %>
-                      <input type="hidden" name="book_id" value="<%= book.id %>">
-                      <input type="hidden" name="prev_url" value="/search">
-                      <button class="btn btn-outline-info" type="button" data-bs-toggle="modal" data-bs-target="#bookDetailModal<%= book.id %>">More Info</button>
-                      <button class="btn btn-outline-primary" type="submit">Add to Cart</button>
-                    </form>
-                  <% } else { %>
-                    <div class="d-grid text-center">
-                      <button class="btn btn-outline-info btn-sm mb-1" type="button" data-bs-toggle="modal" data-bs-target="#bookDetailModal<%= book.id %>">More Info</button>
-                      <button class="btn btn-outline-secondary btn-sm" type="button" disabled>Out of Stock</button>
-                    </div>
-                  <% } %>
+                  <div class="d-grid text-center">
+                    <button class="btn btn-outline-info btn-sm mb-1" type="button" data-bs-toggle="modal" data-bs-target="#bookDetailModal<%= book.id %>">More Info</button>
+                  </div>
+                  <%- include('../partials/_waitlist_buttons', { book, user: typeof user !== 'undefined' ? user : null, prev_url: '/search' }) %>
                 </div>
               </div>
             </div>

@@ -17,8 +17,12 @@ const authRoutes = require('./routes/authRoutes')
 const adminRoutes = require('./routes/adminRoutes')
 const { adminArea, checkUser } = require('./middlewares/authMiddleware')
 const { genreList } = require('./middlewares/userMiddleware')
+const startReservationCron = require('./utils/reservationCron')
 
 const app = express()
+
+// Start the reservation expiry cron job
+startReservationCron()
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {

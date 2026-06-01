@@ -23,4 +23,7 @@ router.get('/orders', adminController.view_orders)
 // View Users
 router.get('/users', adminController.view_users)
 
+// Analytics
+router.get('/analytics/demand', checkUser, adminController.analytics_demand)
+
 module.exports = router

@@ -283,21 +283,20 @@ exports.postBorrow = async (req, res) => {
 
 exports.borrowedBooks = async (req, res) => {
   try {
-    let date = new Date()
-    date.setDate(date.getDate() - 1)  // decrement by 1 day so the borrowed books still appear at the return date.
-
-    await BorrowHistory.updateMany(
-      { return_date: { $lte: date }, borrowed_by: req.params.id },
-      { $set: { status: "Returned" } }
-    )
-
     BorrowHistory.find({ status: "Returned", book_returned: false })
       .then(returnedBook => {
         returnedBook.forEach(async book => {
-          await Book.updateMany(
-            { _id: book.borrowed_book },
-            { $inc: { stock: 1 } }
-          )
+          const b = await Book.findById(book.borrowed_book)
+          if (b && b.waitlist && b.waitlist.length > 0) {
+            b.reservedFor = b.waitlist.shift()
+            b.reservedUntil = new Date(Date.now() + 24 * 60 * 60 * 1000)
+            await b.save()
+          } else if (b) {
+            b.stock += 1
+            b.reservedFor = null
+            b.reservedUntil = null
+            await b.save()
+          }
         })
         return BorrowHistory.updateMany(
           { status: "Returned", book_returned: false }, 
@@ -310,8 +309,12 @@ exports.borrowedBooks = async (req, res) => {
           status: "In Progress"
         }).populate('borrowed_book')
       })
-      .then(borrowedBook => {
-        res.render('customer/inventory', { url: req.params.id, borrowedBook, msg: req.flash('msg') })
+      .then(async borrowedBook => {
+        const activeReservation = await Book.findOne({
+          reservedFor: req.params.id,
+          reservedUntil: { $gt: new Date() }
+        })
+        res.render('customer/inventory', { url: req.params.id, borrowedBook, activeReservation, msg: req.flash('msg') })
       })
       .catch(err => {
         console.log(err)
@@ -331,15 +334,30 @@ exports.returnBook = async (req, res) => {
   const { user_id, book_id, history_id } = req.body
 
   try {
+    const history = await BorrowHistory.findById(history_id)
+    const now = new Date()
+    let fine = 0
+    if (history.return_date < now) {
+      const daysOverdue = Math.ceil((now - history.return_date) / (1000 * 60 * 60 * 24))
+      fine = daysOverdue * 5 // 5 per day
+    }
+
     await BorrowHistory.updateOne(
       { _id: history_id },
-      { $set: { status: "Returned", book_returned: true, return_date: new Date() } }
+      { $set: { status: "Returned", book_returned: true, return_date: now, fine_amount: fine } }
     )
 
-    await Book.updateMany(
-      { _id: book_id },
-      { $inc: { stock: 1 } }
-    )
+    const book = await Book.findById(book_id)
+    if (book && book.waitlist && book.waitlist.length > 0) {
+      book.reservedFor = book.waitlist.shift()
+      book.reservedUntil = new Date(Date.now() + 24 * 60 * 60 * 1000)
+      await book.save()
+    } else if (book) {
+      book.stock += 1
+      book.reservedFor = null
+      book.reservedUntil = null
+      await book.save()
+    }
 
     req.flash('msg', "You just returned a book! Thank you and happy reading!")
     res.redirect(`/inventory/${user_id}`)
@@ -359,5 +377,80 @@ exports.borrowHistory = async (req, res) => {
   } catch(err) {
     console.log(err)
     res.redirect('/')
+  }
+}
+
+exports.joinWaitlist = async (req, res) => {
+  try {
+    const book = await Book.findById(req.params.bookId)
+    const userId = res.locals.user._id
+
+    if (book.stock > 0 || 
+        (book.reservedFor && book.reservedFor.toString() === userId.toString()) ||
+        book.waitlist.includes(userId)) {
+      req.flash('msg', 'Cannot join waitlist for this book.')
+      return res.redirect('back')
+    }
+
+    book.waitlist.push(userId)
+    await book.save()
+    req.flash('msg', 'Successfully joined the waitlist!')
+    res.redirect('back')
+  } catch(err) {
+    console.log(err)
+    res.redirect('back')
+  }
+}
+
+exports.leaveWaitlist = async (req, res) => {
+  try {
+    const book = await Book.findById(req.params.bookId)
+    const userId = res.locals.user._id
+
+    book.waitlist = book.waitlist.filter(id => id.toString() !== userId.toString())
+    await book.save()
+    req.flash('msg', 'You have left the waitlist.')
+    res.redirect('back')
+  } catch(err) {
+    console.log(err)
+    res.redirect('back')
+  }
+}
+
+exports.claimBook = async (req, res) => {
+  try {
+    const book = await Book.findById(req.params.bookId)
+    const userId = res.locals.user._id
+
+    if (!book.reservedFor || 
+        book.reservedFor.toString() !== userId.toString() || 
+        book.reservedUntil <= new Date()) {
+      req.flash('msg', 'This reservation is invalid or has expired.')
+      return res.redirect('back')
+    }
+
+    // Direct claim bypassing cart
+    const returnDate = new Date()
+    returnDate.setDate(returnDate.getDate() + 14) // 14 days from now
+
+    await BorrowHistory.create({
+      borrowed_by: userId,
+      borrowed_book: book._id,
+      borrow_date: new Date(),
+      return_date: returnDate,
+      status: 'In Progress',
+      book_returned: false,
+      fine_amount: 0
+    })
+
+    book.reservedFor = null
+    book.reservedUntil = null
+    await book.save()
+
+    req.flash('msg', 'You have successfully claimed your reserved book!')
+    res.redirect(`/inventory/${userId}`)
+  } catch(err) {
+    console.log(err)
+    res.redirect('back')
   }
 }

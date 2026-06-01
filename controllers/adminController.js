@@ -62,6 +62,14 @@ exports.admin_dashboard = async (req, res) => {
       totalFines += daysOverdue * finePerDay
     })
 
+    const collectedFinesAgg = await BorrowHistory.aggregate([
+      { $match: { book_returned: true } },
+      { $group: { _id: null, total: { $sum: "$fine_amount" } } }
+    ])
+    if (collectedFinesAgg.length > 0) {
+      totalFines += collectedFinesAgg[0].total
+    }
+
     // --- Doughnut Chart: Genre Distribution ---
     const allBooks = await Book.find().select('genre')
     const genreCount = {}
@@ -249,7 +257,7 @@ exports.add_book = (req, res) => {
   } else {
     const cover_image = req.files.cover_image[0].filename
     Book.create({ isbn, title, author, publish_year, page_count, genre, description, stock, cover_image,
-                  location_section, location_side, location_row, location_column })
+                  location_section, location_side, location_row, location_column, total_copies: stock })
       .then(result => {
         req.flash('msg', 'New book has been added!')
         res.redirect('/admin/book')
@@ -353,14 +361,6 @@ exports.delete_book = async (req, res) => {
 
 exports.view_orders = async (req, res) => {
   try {
-    let date = new Date()
-    date.setDate(date.getDate() - 1)
-
-    const updateStatus = await BorrowHistory.updateMany(
-      { return_date: { $lte: date } },
-      { $set: { status: "Returned" } }
-    )
-
     BorrowHistory.find({ status: "Returned", book_returned: false })
       .then(returnedBook => {
         returnedBook.forEach(async book => {
@@ -397,6 +397,49 @@ exports.view_users = async (req, res) => {
   try {
     const users = await User.find()
     res.render('admin/view-users', { users })
+  } catch(err) {
+    console.log(err)
+    res.redirect('/admin')
+  }
+}
+
+exports.analytics_demand = async (req, res) => {
+  try {
+    const books = await Book.find({ 'waitlist.0': { $exists: true } })
+    
+    let totalWaitlistRequests = 0
+    let totalCriticalBooks = 0
+
+    const demandData = books.map(book => {
+      const waitlistLength = book.waitlist.length
+      totalWaitlistRequests += waitlistLength
+      
+      let ratio = 0
+      if (book.total_copies === 0 || !book.total_copies) {
+        ratio = waitlistLength
+      } else {
+        ratio = waitlistLength / book.total_copies
+      }
+
+      if (ratio > 1) {
+        totalCriticalBooks++
+      }
+
+      return {
+        book,
+        waitlistLength,
+        ratio: ratio.toFixed(2)
+      }
+    })
+
+    demandData.sort((a, b) => b.ratio - a.ratio)
+
+    res.render('admin/analytics-demand', {
+      demandData,
+      totalWaitlistRequests,
+      totalCriticalBooks,
+      activeWaitlistedTitles: demandData.length
+    })
   } catch(err) {
     console.log(err)
     res.redirect('/admin')
