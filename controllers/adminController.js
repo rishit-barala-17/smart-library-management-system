@@ -403,43 +403,34 @@ exports.view_users = async (req, res) => {
   }
 }
 
-exports.analytics_demand = async (req, res) => {
+exports.demandAnalytics = async (req, res) => {
   try {
-    const books = await Book.find({ 'waitlist.0': { $exists: true } })
-    
-    let totalWaitlistRequests = 0
-    let totalCriticalBooks = 0
-
-    const demandData = books.map(book => {
-      const waitlistLength = book.waitlist.length
-      totalWaitlistRequests += waitlistLength
-      
-      let ratio = 0
-      if (book.total_copies === 0 || !book.total_copies) {
-        ratio = waitlistLength
-      } else {
-        ratio = waitlistLength / book.total_copies
-      }
-
-      if (ratio > 1) {
-        totalCriticalBooks++
-      }
-
+    const books = await Book.find().select('title isbn stock total_copies waitlist popularityScore genre')
+    const analytics = books.filter(b => b.waitlist && b.waitlist.length > 0).map(b => {
+      const ratio = b.total_copies > 0 ? b.waitlist.length / b.total_copies : b.waitlist.length
       return {
-        book,
-        waitlistLength,
-        ratio: ratio.toFixed(2)
+        _id: b._id,
+        title: b.title,
+        isbn: b.isbn,
+        genre: b.genre,
+        totalCopies: b.total_copies,
+        availableCopies: b.stock,
+        borrowedCopies: b.total_copies - b.stock,
+        waitlistSize: b.waitlist.length,
+        demandRatio: parseFloat(ratio.toFixed(2)),
+        popularityScore: b.popularityScore
       }
-    })
+    }).sort((a, b) => b.demandRatio - a.demandRatio)
 
-    demandData.sort((a, b) => b.ratio - a.ratio)
+    const summary = {
+      totalWithWaitlist: analytics.length,
+      totalWaitlistSlots: analytics.reduce((s, b) => s + b.waitlistSize, 0),
+      criticalCount: analytics.filter(b => b.demandRatio > 2).length,
+      highCount: analytics.filter(b => b.demandRatio > 1).length,
+      actionRequired: analytics.some(b => b.demandRatio > 1)
+    }
 
-    res.render('admin/analytics-demand', {
-      demandData,
-      totalWaitlistRequests,
-      totalCriticalBooks,
-      activeWaitlistedTitles: demandData.length
-    })
+    res.render('admin/analytics-demand', { title: 'Procurement Analytics', analytics, summary })
   } catch(err) {
     console.log(err)
     res.redirect('/admin')

@@ -15,6 +15,37 @@ Claim Your Reserved Copy
 
 
 <% } %>
+
+    <% if (typeof myWaitlist !== 'undefined' && myWaitlist.length > 0) { %>
+      <div class="mb-4 p-3 rounded" style="background-color: #f8fafc; border: 1px solid #e2e8f0;">
+        <h5 class="mb-3" style="color: #334155;">⏳ Your Waitlist</h5>
+        <div class="list-group">
+          <% myWaitlist.forEach(item => { %>
+            <div class="list-group-item d-flex justify-content-between align-items-center">
+              <div>
+                <h6 class="mb-1"><strong><%= item.book.title %></strong></h6>
+                <div class="text-muted small">
+                  <span class="badge <%= item.isNext ? 'bg-success' : (item.isClose ? 'bg-warning text-dark' : 'bg-secondary') %> me-2">
+                    Position: #<%= item.position %>
+                  </span>
+                  Estimated wait: <strong><%= item.estimatedText %></strong>
+                </div>
+                <div style="font-size:11px; color:#94a3b8; margin-top:4px">
+                  Historic avg loan: <%= item.avgLoanDays %> days per borrower
+                </div>
+                <p style="font-size:12px; color:#64748b; font-style:italic; margin:6px 0 0">
+                  💡 <%= item.checkBackTip %>
+                </p>
+              </div>
+              <form action="/books/waitlist/leave/<%= item.book._id %>" method="POST" class="mb-0">
+                <button type="submit" class="btn btn-outline-danger btn-sm">Leave Queue</button>
+              </form>
+            </div>
+          <% }) %>
+        </div>
+      </div>
+    <% } %>
+
     <div class="row d-flex justify-content-center">
       <% if (msg.length !== 0) { %>
         <div class="alert alert-info fw-bold text-center" role="alert">
