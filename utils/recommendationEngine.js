@@ -42,13 +42,17 @@ async function getRecommendations(userId, limit = 10) {
       .sort({ popularityScore: -1 })
       .select('_id title author genre cover_image popularityScore isbn description stock total_copies waitlist reservedFor reservedUntil');
     
-    return topPopular.slice(0, limit).map(book => ({
-      book,
+    return topPopular.slice(0, limit).map(book => {
+      book.cover_image = book.cover_image || 'default_book.svg';
+      book.genre = book.genre || 'General';
+      return {
+        book,
       jaccardScore: 0,
       finalScore: (book.popularityScore || 0) / 10,
       matchPercent: 0,
       reason: 'Trending in the library'
-    }));
+      };
+    });
   }
 
   // PHASE C — FETCH CANDIDATES
@@ -59,6 +63,8 @@ async function getRecommendations(userId, limit = 10) {
 
   // PHASE D — JACCARD SCORING
   const scored = candidates.map(book => {
+    book.cover_image = book.cover_image || 'default_book.svg';
+    book.genre = book.genre || 'General';
     const vectorB = new Set([book.genre]);
     
     let intersectionSize = 0;
