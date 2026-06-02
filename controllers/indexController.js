@@ -283,6 +283,10 @@ exports.postBorrow = async (req, res) => {
 
 exports.borrowedBooks = async (req, res) => {
   try {
+    const userId = req.params.id;
+    const { getRecommendations } = require('../utils/recommendationEngine')
+    const topRecommendations = await getRecommendations(userId, 5)
+
     BorrowHistory.find({ status: "Returned", book_returned: false })
       .then(returnedBook => {
         returnedBook.forEach(async book => {
@@ -390,7 +394,7 @@ exports.borrowedBooks = async (req, res) => {
         )
         myWaitlist.sort((a, b) => a.position - b.position)
 
-        res.render('customer/inventory', { url: req.params.id, borrowedBook, activeReservation, myWaitlist, msg: req.flash('msg') })
+        res.render('customer/inventory', { url: req.params.id, borrowedBook, activeReservation, myWaitlist, topRecommendations, msg: req.flash('msg') })
       })
       .catch(err => {
         console.log(err)

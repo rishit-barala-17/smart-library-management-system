@@ -132,6 +132,51 @@ Claim Your Reserved Copy
         </div>
       <% }) %>
     </div>
+    
+    <!-- BEGIN RECOMMENDATIONS CAROUSEL -->
+    <style>
+      .reco-section { margin-top:2.5rem; padding-top:1.5rem; border-top:2px solid #e2e8f0 }
+      .reco-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem }
+      .reco-title { font-size:1.1rem; font-weight:700; color:#1e293b; margin:0 }
+      .reco-see-all { font-size:0.8rem; color:#2563eb; text-decoration:none }
+      .reco-carousel { display:flex; gap:1rem; overflow-x:auto; padding-bottom:1rem; scrollbar-width:thin }
+      .reco-card { min-width:170px; max-width:170px; background:#fff; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,0.08); overflow:hidden; flex-shrink:0; transition:transform 0.2s }
+      .reco-card:hover { transform:translateY(-4px) }
+      .reco-cover { width:100%; height:200px; object-fit:cover }
+      .reco-body { padding:10px }
+      .reco-genre-badge { font-size:9px; font-weight:700; text-transform:uppercase; background:#dbeafe; color:#1d4ed8; border-radius:4px; padding:2px 6px }
+      .reco-book-title { font-size:12px; font-weight:600; color:#0f172a; margin:5px 0 2px; line-height:1.3; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden }
+      .reco-author { font-size:11px; color:#64748b; margin:0 0 5px }
+      .reco-bar-wrap { background:#f1f5f9; border-radius:4px; height:5px; margin-bottom:2px }
+      .reco-bar { height:100%; border-radius:4px; background:linear-gradient(90deg,#2563eb,#7c3aed) }
+      .reco-pct { font-size:9px; color:#475569 }
+      .reco-reason { font-size:9px; color:#94a3b8; font-style:italic; margin:4px 0 8px; line-height:1.3 }
+      .reco-btn { width:100%; padding:6px; background:#2563eb; color:#fff; border:none; border-radius:6px; font-size:11px; cursor:pointer }
+      .reco-btn:hover { background:#1d4ed8 }
+    </style>
+    
+    <% if (typeof topRecommendations !== 'undefined' && topRecommendations.length > 0) { %>
+    <div class="reco-section">
+      <div class="reco-header"><h4 class="reco-title">📚 Recommended For You</h4><a href="/recommendations" class="reco-see-all">See all 20 picks →</a></div>
+      <div class="reco-carousel">
+        <% topRecommendations.forEach(item => { %>
+        <div class="reco-card">
+          <img src="<%= item.book.cover_image %>" alt="<%= item.book.title %>" class="reco-cover" onerror="this.src='/images/default_book.svg'; this.onerror=null;">
+          <div class="reco-body">
+            <span class="reco-genre-badge"><%= item.book.genre %></span>
+            <p class="reco-book-title"><%= item.book.title %></p>
+            <p class="reco-author"><%= item.book.author %></p>
+            <% if (item.matchPercent > 0) { %><div class="reco-bar-wrap"><div class="reco-bar" style="width:<%= Math.min(item.matchPercent * 3, 100) %>%"></div></div><span class="reco-pct"><%= item.matchPercent %>% match</span><% } %>
+            <p class="reco-reason"><%= item.reason %></p>
+            <form action="/cart" method="POST"><input type="hidden" name="book_id" value="<%= item.book._id %>"><input type="hidden" name="prev_url" value="/inventory/<%= user.id %>"><button class="reco-btn">Add to Cart</button></form>
+          </div>
+        </div>
+        <% }) %>
+      </div>
+    </div>
+    <% } %>
+    <!-- END RECOMMENDATIONS CAROUSEL -->
+
   </div>
 <% } %>
 
