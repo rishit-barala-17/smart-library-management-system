@@ -553,3 +553,28 @@ exports.claimReservation = async (req, res) => {
     res.redirect('back')
   }
 }
+
+exports.recommendationsPage = async (req, res) => {
+  try {
+    const { getRecommendations } = require('../utils/recommendationEngine')
+    const userId = res.locals.user._id
+    const recommendations = await getRecommendations(userId, 20)
+    
+    const strongMatch = recommendations.filter(r => Number(r.jaccardScore) > 0 && Number(r.freqWeight) >= 0.3)
+    const partialMatch = recommendations.filter(r => Number(r.jaccardScore) > 0 && Number(r.freqWeight) < 0.3)
+    const trending = recommendations.filter(r => Number(r.jaccardScore) === 0)
+    
+    res.render('customer/recommendations', { 
+      title: 'Recommended For You', 
+      recommendations, 
+      strongMatch, 
+      partialMatch, 
+      trending, 
+      totalFound: recommendations.length 
+    })
+  } catch (err) {
+    console.error('[RECO] Page error:', err)
+    req.flash('error_msg', 'Could not load recommendations.')
+    res.redirect('/')
+  }
+}

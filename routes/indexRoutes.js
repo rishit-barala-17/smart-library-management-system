@@ -33,6 +33,9 @@ router.post('/books/waitlist/:bookId', checkUser, requireAuth, indexController.j
 router.post('/books/waitlist/leave/:bookId', checkUser, requireAuth, indexController.leaveWaitlist)
 router.post('/books/claim/:bookId', checkUser, requireAuth, indexController.claimReservation)
 
+// Recommendations
+router.get('/recommendations', requireAuth, indexController.recommendationsPage)
+
 // Books by genre - Placed at the bottom to avoid interference with other routes
 router.get('/:genre', indexController.booksByGenre)
 
