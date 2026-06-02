@@ -3,6 +3,7 @@ const path = require('path')
 
 const coverImageBasePath = 'public/images'
 
+// schema definition
 const bookSchema = new mongoose.Schema({
   isbn: {
     type: String,
@@ -49,16 +50,19 @@ const bookSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  // ML fields
   popularityScore: {
     type: Number,
     default: 5,
     min: 1,
     max: 10
   },
+  // location fields
   location_section: { type: String, default: '' },
   location_side:    { type: String, enum: ['Front', 'Back'] },
   location_row:     { type: String, enum: ['A', 'B', 'C', 'D', 'E'] },
   location_column:  { type: Number, min: 1, max: 35 },
+  // waitlist fields
   waitlist: { type: [mongoose.Schema.Types.ObjectId], ref: 'user', default: [] },
   reservedFor: { type: mongoose.Schema.Types.ObjectId, ref: 'user', default: null },
   reservedUntil: { type: Date, default: null }
@@ -77,4 +81,5 @@ bookSchema.virtual('coverImagePath').get(function() {
   }
 })
 
+// export
 module.exports = mongoose.model('book', bookSchema)

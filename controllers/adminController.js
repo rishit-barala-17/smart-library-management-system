@@ -34,6 +34,7 @@ const removeImage = (filePath) => {
   }
 }
 
+// admin dashboard
 exports.admin_dashboard = async (req, res) => {
   try {
     // --- Metric Cards ---
@@ -197,6 +198,7 @@ exports.admin_dashboard = async (req, res) => {
   }
 }
 
+// manage books
 exports.books = (req, res) => {
   let currentPage = req.params.page || 1
   let perPage = req.query.perPage || 10
@@ -233,10 +235,12 @@ exports.books = (req, res) => {
     })
 }
 
+// add book view
 exports.add_book_view = (req, res) => {
   res.render('admin/book-add', { genres })
 }
 
+// process add book
 exports.add_book = (req, res) => {
   const { isbn, title, author, publish_year, page_count, genre, description, stock,
           location_section, location_side, location_row, location_column } = req.body
@@ -269,6 +273,7 @@ exports.add_book = (req, res) => {
   }
 }
 
+// view book detail
 exports.detail_book = async (req, res) => {
   try {
     const book = await Book.findById(req.params.id)
@@ -279,6 +284,7 @@ exports.detail_book = async (req, res) => {
   }
 }
 
+// update book view
 exports.update_book_view = async (req, res) => {
   try {
     const book = await Book.findById(req.params.id)
@@ -289,6 +295,7 @@ exports.update_book_view = async (req, res) => {
   }
 }
 
+// process update book
 exports.update_book = async (req, res) => {
   const { isbn, title, author, publish_year, page_count, genre, description, stock,
           location_section, location_side, location_row, location_column } = req.body
@@ -345,6 +352,7 @@ exports.update_book = async (req, res) => {
   }
 }
 
+// delete book
 exports.delete_book = async (req, res) => {
   try {
     const book = await Book.findById(req.body.book_id)
@@ -359,6 +367,7 @@ exports.delete_book = async (req, res) => {
   }
 }
 
+// view orders
 exports.view_orders = async (req, res) => {
   try {
     BorrowHistory.find({ status: "Returned", book_returned: false })
@@ -393,6 +402,7 @@ exports.view_orders = async (req, res) => {
   }
 }
 
+// view users
 exports.view_users = async (req, res) => {
   try {
     const users = await User.find()
@@ -403,6 +413,7 @@ exports.view_users = async (req, res) => {
   }
 }
 
+// demand analytics
 exports.demandAnalytics = async (req, res) => {
   try {
     const books = await Book.find().select('title isbn stock total_copies waitlist popularityScore genre')

@@ -4,6 +4,7 @@ const { checkLogin } = require('../middlewares/authMiddleware')
 
 const router = express.Router()
 
+// auth routes
 router.get('/register', checkLogin, authController.register_get)
 
 router.post('/register', checkLogin, authController.register_post)

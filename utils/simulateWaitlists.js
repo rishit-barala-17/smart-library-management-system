@@ -5,6 +5,7 @@ const User = require('../models/User');
 
 const DB_URL = process.env.DB_URL || 'mongodb://127.0.0.1:27017/library-management-system';
 
+// DB connect
 mongoose.connect(DB_URL, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
@@ -27,6 +28,7 @@ mongoose.connect(DB_URL, {
       process.exit(1);
     }
 
+    // fetch books
     const books = await Book.find();
     if (books.length === 0) {
       console.log('No books found.');
@@ -81,6 +83,7 @@ mongoose.connect(DB_URL, {
   } catch (error) {
     console.error('Simulation error:', error);
   } finally {
+    // DB disconnect
     mongoose.connection.close();
     process.exit(0);
   }

@@ -2,6 +2,7 @@ if(process.env.NODE_ENV !== 'production') {
   require('dotenv').config()
 }
 
+// dependencies
 const express = require('express')
 const expressLayouts = require('express-ejs-layouts')
 const mongoose = require('mongoose')
@@ -17,6 +18,7 @@ const authRoutes = require('./routes/authRoutes')
 const adminRoutes = require('./routes/adminRoutes')
 const { adminArea, checkUser } = require('./middlewares/authMiddleware')
 const { genreList } = require('./middlewares/userMiddleware')
+// middleware
 const app = express()
 
 
@@ -45,17 +47,20 @@ app.set('view engine', 'ejs')
 app.set('layout', 'layouts/base-layout')
 
 app.use(expressLayouts)
+// static files
 app.use('/public', express.static(path.join(__dirname, 'public')));
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 app.use(methodOverride('_method'))
 app.use(cookieParser('secret'))
+// session setup
 app.use(session({
   cookie: { maxAge: 7 * 24 * 60 * 60 * 1000 },
   secret: 'secret',
   resave: true,
   saveUninitialized: true,
 }))
+// flash setup
 app.use(flash())
 app.use((req, res, next) => {
   res.locals.success_msg = req.flash('success_msg')
@@ -75,12 +80,14 @@ app.use(multer({ storage, fileFilter })
     }
   ]))
 
+// routes
 app.get('*', genreList)
 app.get('*', checkUser)
 app.use('/admin', adminArea, adminRoutes)
 app.use('/', authRoutes)
 app.use('/', indexRoutes) // placed on the bottom of other routes so '/:genre' doesn't interfere with other routes
 
+// DB connection
 mongoose.connect(process.env.DB_URL, {
   useNewUrlParser: true, 
   useUnifiedTopology: true,
@@ -88,6 +95,7 @@ mongoose.connect(process.env.DB_URL, {
 }).then(() => {
     const { startReservationCron } = require('./utils/reservationCron')
     startReservationCron()
+    // server start
     app.listen(process.env.PORT || 3000, () => {
       console.log(`Alvin's Library | Listening at http://localhost:${process.env.PORT}`)
     })

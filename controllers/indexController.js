@@ -35,6 +35,7 @@ const removeImage = (filePath) => {
   }
 }
 
+// home page
 exports.home = async (req, res) => {
   try {
     // for popular books
@@ -53,6 +54,7 @@ exports.home = async (req, res) => {
   }
 }
 
+// all books
 exports.allBooks = (req, res) => {
   let currentPage = req.params.page || 1
   let perPage = req.query.perPage || 12
@@ -83,6 +85,7 @@ exports.allBooks = (req, res) => {
     })
 }
 
+// search book
 exports.searchBook = (req, res) => {
   Book.find({ title: { $regex: req.query.title || '', $options: 'i' } })
     .sort({ title: 1 })
@@ -95,6 +98,7 @@ exports.searchBook = (req, res) => {
     })
 }
 
+// books by genre
 exports.booksByGenre = async  (req, res) => {
   try {
     const { genre } = req.params
@@ -112,14 +116,17 @@ exports.booksByGenre = async  (req, res) => {
   }
 }
 
+// user profile
 exports.userProfile = (req, res) => {
   res.render('customer/profile', { msg: req.flash('msg') })
 }
 
+// edit profile
 exports.editProfile = (req, res) => {
   res.render('customer/profile-edit')
 }
 
+// update profile
 exports.updateProfile = async (req, res) => {
   const { name, email } = req.body
   const errors = validationResult(req)
@@ -173,6 +180,7 @@ exports.updateProfile = async (req, res) => {
   }
 }
 
+// view cart
 exports.cart = (req, res) => {
   Cart.find().populate('user').populate('book')
     .then(result => {
@@ -184,6 +192,7 @@ exports.cart = (req, res) => {
     })
 }
 
+// add to cart
 exports.postToCart = async (req, res) => {
   const { user_id, book_id, prev_url } = req.body
 
@@ -216,6 +225,7 @@ exports.postToCart = async (req, res) => {
   }
 }
 
+// delete cart item
 exports.deleteCartItem = async (req, res) => {
   try {
     const cartItem = await Cart.findById(req.body.item_id).populate({ path: 'book', select: 'title' })
@@ -229,6 +239,7 @@ exports.deleteCartItem = async (req, res) => {
   }
 }
 
+// get borrow page
 exports.getBorrow = (req, res) => {
   Cart.find().populate('user').populate('book')
     .then(result => {
@@ -240,6 +251,7 @@ exports.getBorrow = (req, res) => {
     })
 }
 
+// process borrow
 exports.postBorrow = async (req, res) => {
   const { user_id, borrowDate, returnDate } = req.body
   const errors = validationResult(req)
@@ -281,6 +293,7 @@ exports.postBorrow = async (req, res) => {
   }
 }
 
+// view inventory
 exports.borrowedBooks = async (req, res) => {
   try {
     const userId = req.params.id;
@@ -406,10 +419,12 @@ exports.borrowedBooks = async (req, res) => {
   }
 }
 
+// read book
 exports.readBook = (req, res) => {
   res.send('read book')
 }
 
+// return book
 exports.returnBook = async (req, res) => {
   const { user_id, book_id, history_id } = req.body
 
@@ -448,6 +463,7 @@ exports.returnBook = async (req, res) => {
   }
 }
 
+// view borrow history
 exports.borrowHistory = async (req, res) => {
   try {
     const borrowHistory = await BorrowHistory.find({ borrowed_by: req.params.id })
@@ -461,6 +477,7 @@ exports.borrowHistory = async (req, res) => {
   }
 }
 
+// join waitlist
 exports.joinWaitlist = async (req, res) => {
   try {
     const currentUserId = res.locals.user._id
@@ -511,6 +528,7 @@ exports.joinWaitlist = async (req, res) => {
   }
 }
 
+// leave waitlist
 exports.leaveWaitlist = async (req, res) => {
   try {
     const book = await Book.findById(req.params.bookId)
@@ -526,6 +544,7 @@ exports.leaveWaitlist = async (req, res) => {
   }
 }
 
+// claim reservation
 exports.claimReservation = async (req, res) => {
   try {
     const book = await Book.findById(req.params.bookId)
@@ -558,6 +577,7 @@ exports.claimReservation = async (req, res) => {
   }
 }
 
+// get recommendations
 exports.recommendationsPage = async (req, res) => {
   try {
     const { getRecommendations } = require('../utils/recommendationEngine')

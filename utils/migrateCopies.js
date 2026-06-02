@@ -2,12 +2,14 @@ require('dotenv').config();
 const mongoose = require('mongoose');
 const Book = require('../models/Book');
 
+// DB connect
 mongoose.connect(process.env.DB_URL, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
   useCreateIndex: true,
 }).then(async () => {
   try {
+    // fetch books
     const books = await Book.find({
       $or: [
         { total_copies: 0 },
@@ -27,6 +29,7 @@ mongoose.connect(process.env.DB_URL, {
   } catch (error) {
     console.error('Migration failed:', error);
   } finally {
+    // DB disconnect
     mongoose.disconnect();
     process.exit(0);
   }

@@ -33,14 +33,17 @@ const createJWT = (id) => {
   })
 }
 
+// get register page
 exports.register_get = (req, res) => {
   res.render('auth/register')
 }
 
+// get login page
 exports.login_get = (req, res) => {
   res.render('auth/login')
 }
 
+// process register
 exports.register_post = (req, res) => {
   const { name, email, password, confirmPassword } = req.body
 
@@ -65,6 +68,7 @@ exports.register_post = (req, res) => {
     })
 }
 
+// process login
 exports.login_post = (req, res) => {
   const { email, password } = req.body
 
@@ -80,6 +84,7 @@ exports.login_post = (req, res) => {
     })
 }
 
+// process logout
 exports.logout = (req, res) => {
   res.cookie('jwt', '', { maxAge: 1 })
   res.redirect('/')

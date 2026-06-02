@@ -5,6 +5,7 @@ const path = require('path')
 
 const profilePictureBasePath = 'public/user_images'
 
+// schema definition
 const userSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -33,6 +34,7 @@ const userSchema = new mongoose.Schema({
     type: Number,
     default: 1  // customer
   },
+  // ML fields
   readerType: {
     type: String,
     enum: ['Heavy', 'Casual', 'Dormant'],
@@ -74,4 +76,5 @@ userSchema.virtual('profilePicturePath').get(function() {
   }
 })
 
+// export
 module.exports = mongoose.model('user', userSchema)

@@ -1,5 +1,6 @@
 const mongoose = require('mongoose')
 
+// schema definition
 const borrowHistorySchema = new mongoose.Schema({
   borrowed_by: {
     type: mongoose.Schema.Types.ObjectId,
@@ -37,4 +38,5 @@ const borrowHistorySchema = new mongoose.Schema({
   }
 })
 
+// export
 module.exports = mongoose.model('BorrowHistory', borrowHistorySchema)
