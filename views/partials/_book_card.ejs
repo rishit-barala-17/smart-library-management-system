@@ -16,7 +16,7 @@
           <input type="hidden" name="user_id" value="<%= user.id %>">
         <% } %>
         <input type="hidden" name="book_id" value="<%= book.id %>">
-        <input type="hidden" name="prev_url" value="/books">
+        <input type="hidden" name="prev_url" value="<%= typeof prev_url !== 'undefined' ? prev_url : '/books' %>">
         <button class="btn btn-outline-success btn-sm mb-1" type="button" data-bs-toggle="modal" data-bs-target="#bookDetailModal<%= book.id %>">More Info</button>
         <button class="btn btn-outline-primary btn-sm" type="submit">Add to Cart</button>
       </form>

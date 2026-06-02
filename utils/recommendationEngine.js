@@ -40,7 +40,7 @@ async function getRecommendations(userId, limit = 10) {
   if (vectorA.size === 0) {
     const topPopular = await Book.find({ _id: { $nin: [...borrowedBookIds] } })
       .sort({ popularityScore: -1 })
-      .select('_id title author genre cover_image popularityScore isbn description');
+      .select('_id title author genre cover_image popularityScore isbn description stock total_copies waitlist reservedFor reservedUntil');
     
     return topPopular.slice(0, limit).map(book => ({
       book,
@@ -53,7 +53,7 @@ async function getRecommendations(userId, limit = 10) {
 
   // PHASE C — FETCH CANDIDATES
   const candidates = await Book.find({ _id: { $nin: [...borrowedBookIds] } })
-    .select('_id title author genre cover_image popularityScore isbn description');
+    .select('_id title author genre cover_image popularityScore isbn description stock total_copies waitlist reservedFor reservedUntil');
 
   if (candidates.length === 0) return [];
 
