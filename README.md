@@ -438,13 +438,3 @@ Generating artificial user emails directly from Faker's full names caused MongoD
 5. **PDF Procurement Exports**: Enable administrators to download the Waitlist Demand Analytics table as a cleanly formatted PDF to provide direct action lists to purchasing departments.
 
 ---
-
-## 👤 Author
-
-Built by Alvin Martin Djong. Course project — Smart Library Management System.
-
----
-
-## 📄 License
-
-MIT License.
