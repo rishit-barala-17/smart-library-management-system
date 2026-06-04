@@ -11,11 +11,8 @@
 
 ---
 
-## 📸 Screenshots & Demo
-
-> 📸 Add screenshots here — suggested: Home, Books page (waitlist buttons), Admin Analytics, Recommendations page, Inventory with Your Waitlist section, 2D Shelf Locator
-
-When visitors first open the app, they are greeted by a sleek, modern dashboard showcasing trending books and personalised recommendations, immediately drawing them into a rich browsing experience.
+## 🎬 Demo Video
+> 🎥 **[Watch the Demo Video](./demo.mp4)**
 
 ---
 

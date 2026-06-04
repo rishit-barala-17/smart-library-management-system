@@ -6,7 +6,7 @@
     <% const uid = user ? user._id.toString() : null %>
     
     <% if (uid && book.reservedFor && book.reservedFor.toString() === uid && book.reservedUntil > new Date()) { %>
-      <div class="alert alert-success p-1 mb-2 text-center small fw-bold">✅ Reserved for you</div>
+      <div class="alert alert-success p-1 mb-2 text-center small fw-bold"> Reserved for you</div>
       <form action="/books/claim/<%= book._id %>" method="POST" class="d-grid mb-0">
         <button type="submit" class="btn btn-success btn-sm">Claim Now</button>
       </form>
@@ -22,7 +22,7 @@
       </form>
     <% } else if (book.stock === 0 && uid && book.waitlist && book.waitlist.some(id => id.toString() === uid)) { %>
       <% const index = book.waitlist.findIndex(id => id.toString() === uid) %>
-      <div class="alert alert-info p-1 mb-2 text-center small">🕐 Waitlist position: #<%= index + 1 %></div>
+      <div class="alert alert-info p-1 mb-2 text-center small"> Waitlist position: #<%= index + 1 %></div>
       <small style="display:block; color:#94a3b8; font-size:10px; margin-top:4px; font-style:italic">
         View estimated wait time in your
         <a href="/inventory" style="color:#93c5fd; text-decoration:none">
@@ -33,7 +33,7 @@
         <button type="submit" class="btn btn-link btn-sm text-decoration-none">Leave waitlist</button>
       </form>
     <% } else { %>
-      <div class="badge bg-danger mb-2 d-block">❌ Out of stock</div>
+      <div class="badge bg-danger mb-2 d-block"> Out of stock</div>
       <form action="/books/waitlist/<%= book._id %>" method="POST" class="d-grid mb-0">
         <button type="submit" class="btn btn-warning btn-sm">Join Waitlist (<%= book.waitlist ? book.waitlist.length : 0 %> waiting)</button>
       </form>

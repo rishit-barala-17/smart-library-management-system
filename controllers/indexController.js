@@ -271,21 +271,21 @@ exports.postBorrow = async (req, res) => {
   } else {
     try {
       const cartItems = await Cart.find({ user: user_id })
-      cartItems.forEach(async (item) => {
-        const borrow = await BorrowHistory.create({
+      for (const item of cartItems) {
+        await BorrowHistory.create({
           borrowed_by: user_id,
           borrowed_book: item.book,
           borrow_date: new Date(borrowDate),
           return_date: new Date(returnDate)
         })
-        const book = await Book.updateMany(
+        await Book.updateOne(
           { _id: item.book },
           { $inc: { stock: -1 } }
         )
-        const cart = await Cart.find({ user: user_id }).deleteMany()
-        req.flash('msg', "Book successfully borrowed!")
-        return res.redirect(`/inventory/${user_id}`)
-      })
+      }
+      await Cart.deleteMany({ user: user_id })
+      req.flash('msg', "Book successfully borrowed!")
+      return res.redirect(`/inventory/${user_id}`)
     } catch(err) {
       console.log(err)
       res.redirect('/')

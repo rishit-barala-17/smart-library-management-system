@@ -20,7 +20,7 @@
             <% } else if (isReservedForUser) { %>
               <!-- CASE 1 -->
               <div class="alert alert-success p-2 text-center" style="font-size: 0.85rem; margin-bottom: 0.5rem;">
-                <div class="fw-bold mb-1">✅ A copy is reserved for you!</div>
+                <div class="fw-bold mb-1"> A copy is reserved for you!</div>
                 <div class="small">Expires at: <%= new Intl.DateTimeFormat('en-GB', { dateStyle: 'medium' ,
                     timeStyle: 'short' }).format(book.reservedUntil) %>
                 </div>
@@ -43,7 +43,7 @@
                 <% } else if (inWaitlist) { %>
                   <!-- CASE 3 -->
                   <div class="alert alert-info p-2 text-center" style="font-size: 0.85rem; margin-bottom: 0.5rem;">
-                    <div class="fw-bold">🕐 You are in the waitlist.</div>
+                    <div class="fw-bold"> You are in the waitlist.</div>
                     <div class="small">Position: #<%= waitlistIndex + 1 %> of <%= waitlistLength %>
                     </div>
                   </div>
@@ -55,7 +55,7 @@
                   <% } else { %>
                     <!-- CASE 4 -->
                     <div class="alert alert-danger p-2 text-center" style="font-size: 0.85rem; margin-bottom: 0.5rem;">
-                      <div class="fw-bold">❌ No copies currently available</div>
+                      <div class="fw-bold"> No copies currently available</div>
                     </div>
                     <form class="d-grid mx-auto mb-0" action="/books/waitlist/<%= book._id %>" method="POST">
                       <button class="btn btn-danger btn-sm" type="submit">Join Waitlist</button>

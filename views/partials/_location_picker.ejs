@@ -116,7 +116,7 @@
   
   <% if (pickerMode === 'user' && typeof book !== 'undefined' && book && book.location_section) { %>
     <div class="loc-badge">
-      📍 Find at: <strong><%= book.location_section %></strong> &rarr; Row <strong><%= book.location_row %></strong> &rarr; <strong><%= book.location_side %></strong> Side &rarr; Column <strong><%= book.location_column %></strong>
+       Find at: <strong><%= book.location_section %></strong> &rarr; Row <strong><%= book.location_row %></strong> &rarr; <strong><%= book.location_side %></strong> Side &rarr; Column <strong><%= book.location_column %></strong>
     </div>
   <% } else if (pickerMode === 'admin') { %>
     <label class="form-label fw-semibold">Physical Location <span class="text-danger">*</span></label>
